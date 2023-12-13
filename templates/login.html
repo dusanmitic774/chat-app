@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login</title>
+</head>
+
+<body>
+  <h1>Welcome to the Chat App</h1>
+  <nav>
+    <a href="{{ url_for('main.index') }}">Home</a> |
+    <a href="{{ url_for('auth.login') }}">Login</a> |
+    <a href="{{ url_for('auth.signup') }}">Signup</a> |
+    <a href="{{ url_for('auth.logout') }}">Logout</a>
+  </nav>
+  <form action="{{ url_for('auth.login') }}" method="post">
+    <input type="text" name="username" placeholder="Username">
+    <input type="password" name="password" placeholder="Password">
+    <button type="submit">Login</button>
+  </form>
+</body>
+
+</html>

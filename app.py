@@ -1,8 +1,10 @@
-from flask import Flask
+import os
 
-app = Flask(__name__)
+from app import app
 
-
-@app.route("/")
-def hello_world():
-    return "Hello, World!"
+if __name__ == "__main__":
+    if os.getenv("FLASK_ENV") == "development":
+        app.debug = True
+    else:
+        app.debug = False
+    app.run()

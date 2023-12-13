@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Landing Page</title>
+</head>
+
+<body>
+  <h1>Welcome to the Chat App</h1>
+  <nav>
+    <a href="{{ url_for('main.index') }}">Home</a> |
+    <a href="{{ url_for('auth.login') }}">Login</a> |
+    <a href="{{ url_for('auth.signup') }}">Signup</a> |
+    <a href="{{ url_for('auth.logout') }}">Logout</a>
+  </nav>
+
+  <div>
+    <h2>Registered Users</h2>
+    <ul>
+      {% for user in users %}
+      <li>{{ user.username }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {% if current_user.is_authenticated %}
+  <p>Logged in as: {{ current_user.username }}</p>
+  {% else %}
+  <p>You are not logged in.</p>
+  {% endif %}
+</body>
+
+</html>
