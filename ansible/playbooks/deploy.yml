@@ -1,0 +1,69 @@
+- hosts: web_chat_app
+  become: yes
+
+  tasks:
+    - name: Check if the SSH key already exists
+      stat:
+        path: "/home/ansible_chat_app/.ssh/id_rsa"
+      register: ssh_key
+      become: yes
+      become_user: ansible_chat_app
+
+    - name: Set correct permissions for existing SSH private key
+      file:
+        path: "/home/ansible_chat_app/.ssh/id_rsa"
+        owner: ansible_chat_app
+        group: ansible_chat_app
+        mode: '0600'
+      when: ssh_key.stat.exists
+      become: yes
+      become_user: ansible_chat_app
+
+    - name: Set correct permissions for existing SSH public key
+      file:
+        path: "/home/ansible_chat_app/.ssh/id_rsa.pub"
+        owner: ansible_chat_app
+        group: ansible_chat_app
+        mode: '0644'
+      when: ssh_key.stat.exists
+      become: yes
+      become_user: ansible_chat_app
+
+    - name: Add GitHub to known hosts
+      known_hosts:
+        name: "github.com"
+        key: "{{ lookup('pipe', 'ssh-keyscan -t rsa github.com') }}"
+        path: "/home/ansible_chat_app/.ssh/known_hosts"
+      become: yes
+      become_user: ansible_chat_app
+
+    - name: Check if Docker is installed
+      command: docker --version
+      register: docker_installed
+      ignore_errors: yes
+
+    - name: Install Git, Docker, and Docker-compose
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - git
+          - docker.io
+          - docker-compose
+      when: docker_installed.rc != 0
+
+    - name: Clone the repository using SSH
+      git:
+        repo: 'git@github.com:dusanmitic774/chat-app-flask.git'
+        dest: '/home/ansible_chat_app/chat-app-flask'
+        key_file: "/home/ansible_chat_app/.ssh/id_rsa"
+      become: yes
+      become_user: ansible_chat_app
+
+    - name: Build and run Docker containers
+      command: docker compose up -d
+      args:
+        chdir: '/home/ansible_chat_app/chat-app-flask'
+
