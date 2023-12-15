@@ -10,7 +10,7 @@ auth = Blueprint("auth", __name__)
 @auth.route("/logout")
 def logout():
     logout_user()
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("main.index"))
 
 
 @auth.route("/signup", methods=["GET", "POST"])
@@ -31,7 +31,7 @@ def signup():
         db.session.add(new_user)
         db.session.commit()
 
-        return redirect(url_for("auth.login"))
+        return redirect(url_for("main.index"))
 
     return render_template("signup.html")
 
@@ -50,6 +50,6 @@ def login():
 
         login_user(user)
 
-        return redirect(url_for("auth.login"))
+        return redirect(url_for("main.index"))
 
     return render_template("login.html")
