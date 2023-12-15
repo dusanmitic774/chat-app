@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   chat-app-web:
+    container_name: chat-app
     build: .
     ports:
       - "5000:5000"
@@ -13,6 +14,7 @@ services:
       - chat-app-db
 
   chat-app-db:
+    container_name: postgres-chat-app
     image: postgres:13
     env_file:
       - .env

@@ -1,14 +1,13 @@
-from app.main import main as main_blueprint
 import os
 
 from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
+from flask_migrate import Migrate
 
 from app.database import db
+from app.main import main as main_blueprint
 from app.models import User
-
-from app.database import db
 
 
 def create_app():
@@ -37,6 +36,7 @@ def create_app():
 
 
 app = create_app()
+migrate = Migrate(app, db)
 
 
 with app.app_context():

@@ -62,8 +62,12 @@
       become: yes
       become_user: ansible_chat_app
 
-    - name: Build and run Docker containers
-      command: docker compose up -d
+    - name: Build Docker containers
+      command: docker compose build
       args:
         chdir: '/home/ansible_chat_app/chat-app-flask'
 
+    - name: Run Docker containers
+      command: docker compose up -d
+      args:
+        chdir: '/home/ansible_chat_app/chat-app-flask'
