@@ -18,6 +18,9 @@
     <input type="password" name="password" placeholder="Password">
     <button type="submit">Sign Up</button>
   </form>
+  {% for message in get_flashed_messages() %}
+  <div>{{ message }}</div>
+  {% endfor %}
 </body>
 
 </html>

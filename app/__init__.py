@@ -1,21 +1,21 @@
-import os
-
 from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
+from app.config import Config, TestingConfig
 from app.database import db
 from app.main import main as main_blueprint
 from app.models import User
 
 
-def create_app():
+def create_app(config_name="default"):
     app = Flask(__name__, template_folder="../templates")
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-    app.config["TEMPLATES_AUTO_RELOAD"] = True
+    if config_name == "testing":
+        app.config.from_object(TestingConfig)
+    else:
+        app.config.from_object(Config)
 
     from .auth import auth as auth_blueprint
 
@@ -26,6 +26,8 @@ def create_app():
     login_manager.login_view = "auth.login"
     login_manager.init_app(app)
 
+    # We need this function because it's being called
+    # every time flask tries to access current_user
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))

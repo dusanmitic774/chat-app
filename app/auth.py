@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user
 
 from .database import db
 from .models import User
+from flask import jsonify
 
 auth = Blueprint("auth", __name__)
 
@@ -18,18 +19,17 @@ def signup():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-
         user = User.query.filter_by(username=username).first()
 
         if user:
-            flash("Username already exists")
-            return redirect(url_for("auth.signup"))
+            return jsonify(message="Username already exists"), 409
 
         new_user = User(username=username)
         new_user.set_password(password)
-
         db.session.add(new_user)
         db.session.commit()
+
+        flash("Signup successful!")
 
         return redirect(url_for("main.index"))
 
@@ -41,14 +41,13 @@ def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-
         user = User.query.filter_by(username=username).first()
 
         if not user or not user.check_password(password):
-            flash("Please check your login details and try again.")
-            return redirect(url_for("auth.login"))
+            return jsonify(message="Invalid login details"), 401
 
         login_user(user)
+        flash("Login successful!")
 
         return redirect(url_for("main.index"))
 
