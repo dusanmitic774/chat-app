@@ -29,7 +29,19 @@ docker compose up --build
 - This will start the necessary services (app, database) in containers.
 
 4. **Accessing the App**:
-- The app will be accessible at `http://localhost:5000`.
+- The app will be accessible at `http://localhost:8080`.
+
+### Running migrations
+- First you need to initialize the database with the following command:
+```
+docker exec -it chat-app flask db init
+```
+
+- Then to make migrations run the following commands
+```
+docker exec -it chat-app flask db migrate
+docker exec -it chat-app flask db upgrade
+```
 
 ## Deploying with Ansible
 
