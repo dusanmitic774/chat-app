@@ -71,3 +71,8 @@
       command: docker compose up -d
       args:
         chdir: '/home/ansible_chat_app/chat-app-flask'
+
+    - name: Run database migrations
+      command: docker exec chat-app flask db upgrade
+      args:
+        chdir: '/home/ansible_chat_app/chat-app-flask'
