@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Chat</title>
+  <style>
+    .friend {
+      cursor: pointer;
+      margin: 5px;
+      padding: 5px;
+      border: 1px solid #ddd;
+    }
+
+    .active {
+      background-color: #efefef;
+    }
+
+    #messageInput {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Welcome to the Chat App</h1>
+  <nav>
+    <a href="{{ url_for('main.index') }}">Home</a> |
+    <a href="{{ url_for('chat.chat') }}">Chat</a> |
+    <a href="{{ url_for('auth.login') }}">Login</a> |
+    <a href="{{ url_for('auth.signup') }}">Signup</a> |
+    <a href="{{ url_for('auth.logout') }}">Logout</a>
+  </nav>
+
+  <div id="userList">
+    {% for user in users %}
+    <div class="user" data-user-id="{{ user.id }}">{{ user.username }}</div>
+    {% endfor %}
+  </div>
+
+  <input type="text" id="messageInput" placeholder="Type a message...">
+  <button id="sendButton">Send</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+    integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+    crossorigin="anonymous"></script>
+
+  <script type="text/javascript">
+    var socket = io.connect(window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + '/chat', {transports: ['polling']});
+    var currentRecipientId = null;
+    var currentUserId = {{user.id}};
+
+    document.getElementById('userList').addEventListener('click', function (event) {
+      if (event.target.classList.contains('user')) {
+        document.querySelectorAll('.user').forEach(i => i.classList.remove('active'));
+        event.target.classList.add('active');
+        currentRecipientId = event.target.getAttribute('data-user-id');
+      }
+    });
+
+    socket.on('connect', function () {
+      console.log('Connected to Socket.IO server.');
+
+      function sendMessage(message) {
+        if (!currentRecipientId) {
+          alert("Please select a recipient.");
+          return;
+        }
+        socket.emit('send_message', {
+          sender_id: currentUserId,
+          recipient_id: currentRecipientId,
+          message: message
+        });
+      }
+
+      document.getElementById('sendButton').addEventListener('click', function () {
+        var message = document.getElementById('messageInput').value;
+        sendMessage(message);
+        document.getElementById('messageInput').value = '';
+      });
+    });
+
+    socket.on('receive_message', function (data) {
+      console.log('Received message:', data);
+    });
+  </script>
+</body>
+
+</html>

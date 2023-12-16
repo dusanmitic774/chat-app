@@ -2,11 +2,18 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_socketio import SocketIO
 
+from app.auth import auth as auth_blueprint
 from app.config import Config, TestingConfig
 from app.database import db
 from app.main import main as main_blueprint
 from app.models import User
+
+socketio = SocketIO(
+    cors_allowed_origins="*",
+    allow_websocket_origins=["*"],
+)
 
 
 def create_app(config_name="default"):
@@ -17,10 +24,14 @@ def create_app(config_name="default"):
     else:
         app.config.from_object(Config)
 
-    from .auth import auth as auth_blueprint
+    socketio.init_app(app)
 
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(main_blueprint)
+
+    from app.chat import chat_bp
+
+    app.register_blueprint(chat_bp)
 
     login_manager = LoginManager()
     login_manager.login_view = "auth.login"
@@ -39,7 +50,6 @@ def create_app(config_name="default"):
 
 app = create_app()
 migrate = Migrate(app, db)
-
 
 with app.app_context():
     db.create_all()

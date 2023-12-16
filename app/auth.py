@@ -1,8 +1,8 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import login_user, logout_user
 
-from .database import db
-from .models import User
+from app.database import db
+from app.models import User
 from flask import jsonify
 
 auth = Blueprint("auth", __name__)
