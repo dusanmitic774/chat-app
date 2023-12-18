@@ -18,6 +18,15 @@
     #messageInput {
       margin-top: 10px;
     }
+
+    #chatWindow div {
+      margin-bottom: 10px;
+      padding: 5px;
+      border-radius: 5px;
+      background-color: #f1f1f1;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
   </style>
 </head>
 
@@ -36,6 +45,8 @@
     <div class="user" data-user-id="{{ user.id }}">{{ user.username }}</div>
     {% endfor %}
   </div>
+
+  <div id="chatWindow" style="height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;"></div>
 
   <input type="text" id="messageInput" placeholder="Type a message...">
   <button id="sendButton">Send</button>
@@ -65,6 +76,9 @@
           alert("Please select a recipient.");
           return;
         }
+
+        appendMessage(currentUserId, message, true);
+
         socket.emit('send_message', {
           sender_id: currentUserId,
           recipient_id: currentRecipientId,
@@ -79,9 +93,33 @@
       });
     });
 
-    socket.on('receive_message', function (data) {
-      console.log('Received message:', data);
+    document.getElementById('messageInput').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendMessage(this.value);
+        this.value = '';
+      }
     });
+
+    socket.on('receive_message', function (data) {
+      appendMessage(data.sender_id, data.message, data.sender_id == currentUserId);
+    });
+
+    function appendMessage(userId, message, isSender) {
+      var messageElement = document.createElement('div');
+      if (isSender) {
+        messageElement.innerHTML = `<strong>Me:</strong> ${message}`;
+        messageElement.style.textAlign = 'right';
+      } else {
+        messageElement.innerHTML = `<strong>${userId}:</strong> ${message}`;
+        messageElement.style.textAlign = 'left';
+      }
+      document.getElementById('chatWindow').appendChild(messageElement);
+
+      // Auto-scroll to the newest message
+      var chatWindow = document.getElementById('chatWindow');
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
   </script>
 </body>
 
