@@ -4,7 +4,7 @@
 <head>
   <title>Chat</title>
   <style>
-    .friend {
+    .user {
       cursor: pointer;
       margin: 5px;
       padding: 5px;
@@ -19,13 +19,23 @@
       margin-top: 10px;
     }
 
-    #chatWindow div {
+    .message {
       margin-bottom: 10px;
       padding: 5px;
       border-radius: 5px;
       background-color: #f1f1f1;
       max-width: 70%;
       word-wrap: break-word;
+    }
+
+    .sent-message {
+      background-color: #dcf8c6;
+      text-align: right;
+    }
+
+    .received-message {
+      background-color: #fff;
+      text-align: left;
     }
   </style>
 </head>
@@ -55,42 +65,38 @@
     integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
     crossorigin="anonymous"></script>
 
-  <script type="text/javascript">
+  <script>
     var socket = io.connect(window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + '/chat', {transports: ['polling']});
     var currentRecipientId = null;
     var currentUserId = {{user.id}};
+    var messageStore = {};
 
     document.getElementById('userList').addEventListener('click', function (event) {
       if (event.target.classList.contains('user')) {
         document.querySelectorAll('.user').forEach(i => i.classList.remove('active'));
         event.target.classList.add('active');
-        currentRecipientId = event.target.getAttribute('data-user-id');
+        switchUser(event.target.getAttribute('data-user-id'));
       }
     });
 
+    function switchUser(recipientId) {
+      currentRecipientId = recipientId;
+      document.getElementById('chatWindow').innerHTML = '';
+      var messages = messageStore[recipientId] || [];
+
+      messages.forEach(function (msg) {
+        appendMessage(msg.userId, msg.message, msg.isSender);
+      });
+    }
+
     socket.on('connect', function () {
       console.log('Connected to Socket.IO server.');
+    });
 
-      function sendMessage(message) {
-        if (!currentRecipientId) {
-          alert("Please select a recipient.");
-          return;
-        }
-
-        appendMessage(currentUserId, message, true);
-
-        socket.emit('send_message', {
-          sender_id: currentUserId,
-          recipient_id: currentRecipientId,
-          message: message
-        });
-      }
-
-      document.getElementById('sendButton').addEventListener('click', function () {
-        var message = document.getElementById('messageInput').value;
-        sendMessage(message);
-        document.getElementById('messageInput').value = '';
-      });
+    document.getElementById('sendButton').addEventListener('click', function () {
+      var message = document.getElementById('messageInput').value;
+      sendMessage(message);
+      document.getElementById('messageInput').value = '';
     });
 
     document.getElementById('messageInput').addEventListener('keypress', function (e) {
@@ -101,22 +107,43 @@
       }
     });
 
+    function sendMessage(message) {
+      if (!currentRecipientId) {
+        alert("Please select a recipient.");
+        return;
+      }
+      storeAndAppendMessage(currentUserId, currentRecipientId, message, true);
+      socket.emit('send_message', {
+        sender_id: currentUserId,
+        recipient_id: currentRecipientId,
+        message: message
+      });
+    }
+
+    function storeAndAppendMessage(senderId, recipientId, message, isSender) {
+      var messageId = isSender ? recipientId : senderId;
+      if (!messageStore[messageId]) {
+        messageStore[messageId] = [];
+      }
+
+      messageStore[messageId].push({userId: senderId, message: message, isSender: isSender});
+
+      if (currentRecipientId && (senderId == currentRecipientId || recipientId == currentRecipientId)) {
+        appendMessage(senderId, message, isSender);
+      }
+    }
+
     socket.on('receive_message', function (data) {
-      appendMessage(data.sender_id, data.message, data.sender_id == currentUserId);
+      storeAndAppendMessage(data.sender_id, data.recipient_id, data.message, data.sender_id === currentUserId);
     });
 
     function appendMessage(userId, message, isSender) {
       var messageElement = document.createElement('div');
-      if (isSender) {
-        messageElement.innerHTML = `<strong>Me:</strong> ${message}`;
-        messageElement.style.textAlign = 'right';
-      } else {
-        messageElement.innerHTML = `<strong>${userId}:</strong> ${message}`;
-        messageElement.style.textAlign = 'left';
-      }
+      messageElement.className = isSender ? 'message sent-message' : 'message received-message';
+      messageElement.innerHTML = `<strong>${isSender ? 'Me' : userId}:</strong> ${message}`;
+
       document.getElementById('chatWindow').appendChild(messageElement);
 
-      // Auto-scroll to the newest message
       var chatWindow = document.getElementById('chatWindow');
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
