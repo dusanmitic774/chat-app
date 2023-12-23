@@ -1,6 +1,9 @@
-from .database import db
+from datetime import datetime
+
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from app.database import db
 
 
 class User(UserMixin, db.Model):
@@ -32,3 +35,4 @@ class Message(db.Model):
     sender_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     recipient_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     content = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
