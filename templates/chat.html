@@ -81,11 +81,30 @@
 
     function switchUser(recipientId) {
       currentRecipientId = recipientId;
+      if (!messageStore[recipientId]) {
+        fetchAndDisplayHistory(recipientId);
+      } else {
+        displayMessages(recipientId);
+      }
+    }
+
+    function fetchAndDisplayHistory(recipientId) {
+      fetch(`/get-messages?recipient_id=${recipientId}`)
+        .then(response => response.json())
+        .then(data => {
+          messageStore[recipientId] = data.messages.map(msg => ({
+            userId: msg.sender_id.toString(),
+            message: msg.content
+          }));
+          displayMessages(recipientId);
+        });
+    }
+
+    function displayMessages(recipientId) {
       document.getElementById('chatWindow').innerHTML = '';
       var messages = messageStore[recipientId] || [];
-
       messages.forEach(function (msg) {
-        appendMessage(msg.userId, msg.message, msg.isSender);
+        appendMessage(msg.userId, msg.message, msg.userId === currentUserId.toString());
       });
     }
 

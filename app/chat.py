@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, url_for
+from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 from flask_socketio import emit, join_room
 
@@ -45,3 +45,37 @@ def handle_send_message_event(data):
         emit("receive_message", data, room=str(data["recipient_id"]))
     else:
         app_logger.info("Unauthorized messege sending!")
+
+
+@chat_bp.route("/get-messages")
+def get_messages():
+    recipient_id = request.args.get("recipient_id")
+    if not current_user.is_authenticated or not recipient_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    messages = (
+        Message.query.filter(
+            (
+                (Message.sender_id == current_user.id)
+                & (Message.recipient_id == recipient_id)
+            )
+            | (
+                (Message.sender_id == recipient_id)
+                & (Message.recipient_id == current_user.id)
+            )
+        )
+        .order_by(Message.timestamp)
+        .all()
+    )
+
+    messages_data = [
+        {
+            "sender_id": msg.sender_id,
+            "recipient_id": msg.recipient_id,
+            "content": msg.content,
+            "timestamp": msg.timestamp.isoformat(),
+        }
+        for msg in messages
+    ]
+
+    return jsonify({"messages": messages_data})
