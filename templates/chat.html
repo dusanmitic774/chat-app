@@ -131,24 +131,48 @@
         alert("Please select a recipient.");
         return;
       }
-      storeAndAppendMessage(currentUserId, currentRecipientId, message, true);
+
+      // Optimistically display the message
+      var messageId = 'msg_' + new Date().getTime();  // Unique ID for the message
+      storeAndAppendMessage(currentUserId, currentRecipientId, message, true, messageId);
+
       socket.emit('send_message', {
         sender_id: currentUserId,
         recipient_id: currentRecipientId,
         message: message
+      }, function (success) {
+        if (!success) {
+          // Remove the optimistic message and show error
+          removeMessage(messageId);
+          appendErrorMessage("Failed to send");
+        }
       });
     }
 
-    function storeAndAppendMessage(senderId, recipientId, message, isSender) {
-      var messageId = isSender ? recipientId : senderId;
-      if (!messageStore[messageId]) {
-        messageStore[messageId] = [];
+    function storeAndAppendMessage(senderId, recipientId, message, isSender, messageId) {
+      var messageId = messageId || 'msg_' + new Date().getTime();
+      if (!messageStore[recipientId]) {
+        messageStore[recipientId] = [];
       }
 
-      messageStore[messageId].push({userId: senderId, message: message, isSender: isSender});
+      messageStore[recipientId].push({userId: senderId, message: message, isSender: isSender, messageId: messageId});
 
       if (currentRecipientId && (senderId == currentRecipientId || recipientId == currentRecipientId)) {
-        appendMessage(senderId, message, isSender);
+        appendMessage(senderId, message, isSender, messageId);
+      }
+    }
+
+    function appendErrorMessage(errorMessage) {
+      var errorElement = document.createElement('div');
+      errorElement.className = 'message error-message';
+      errorElement.innerHTML = errorMessage;
+      document.getElementById('chatWindow').appendChild(errorElement);
+    }
+
+    function removeMessage(messageId) {
+      var messageElement = document.getElementById(messageId);
+      if (messageElement) {
+        messageElement.remove();
       }
     }
 
@@ -156,16 +180,17 @@
       storeAndAppendMessage(data.sender_id, data.recipient_id, data.message, data.sender_id === currentUserId);
     });
 
-    function appendMessage(userId, message, isSender) {
+    function appendMessage(userId, message, isSender, messageId) {
       var messageElement = document.createElement('div');
+      messageElement.id = messageId; // Set the unique ID
       messageElement.className = isSender ? 'message sent-message' : 'message received-message';
       messageElement.innerHTML = `<strong>${isSender ? 'Me' : userId}:</strong> ${message}`;
 
       document.getElementById('chatWindow').appendChild(messageElement);
-
       var chatWindow = document.getElementById('chatWindow');
       chatWindow.scrollTop = chatWindow.scrollHeight;
     }
+
   </script>
 </body>
 

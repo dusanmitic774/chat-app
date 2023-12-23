@@ -30,21 +30,26 @@ def chat():
 @socketio.on("send_message", namespace="/chat")
 def handle_send_message_event(data):
     if current_user.is_authenticated and str(current_user.id) == str(data["sender_id"]):
-        new_message = Message(
-            sender_id=data["sender_id"],
-            recipient_id=data["recipient_id"],
-            content=data["message"],
-        )
-        db.session.add(new_message)
-        db.session.commit()
+        try:
+            new_message = Message(
+                sender_id=data["sender_id"],
+                recipient_id=data["recipient_id"],
+                content=data["message"],
+            )
+            db.session.add(new_message)
+            db.session.commit()
 
-        app_logger.info(
-            f"{data['sender_id']} has sent a message to {data['recipient_id']}: {data['message']}"
-        )
+            app_logger.info(
+                f"{data['sender_id']} has sent a message to {data['recipient_id']}: {data['message']}"
+            )
+            emit("receive_message", data, room=str(data["recipient_id"]))
+            return True
+        except Exception as e:
+            app_logger.error(f"Error saving message: {e}")
+            return False
 
-        emit("receive_message", data, room=str(data["recipient_id"]))
-    else:
-        app_logger.info("Unauthorized messege sending!")
+    app_logger.info("Unauthorized message sending!")
+    return False
 
 
 @chat_bp.route("/get-messages")
