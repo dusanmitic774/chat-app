@@ -8,6 +8,7 @@ services:
       - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/usr/src/app/static
     depends_on:
       - chat-app-web
   chat-app-web:
