@@ -1,6 +1,15 @@
-var socket = io.connect(window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + '/chat', { transports: ['polling'] });
-var currentRecipientId = null;
-var messageStore = {};
+let socket = io.connect(
+  window.location.protocol +
+  '//'
+  + window.location.hostname
+  + (window.location.port ? ':'
+    + window.location.port : '')
+  + '/chat', {
+  transports: ['polling']
+});
+
+let currentRecipientId = null;
+const messageStore = {};
 
 document.getElementById('userList').addEventListener('click', function(event) {
   if (event.target.classList.contains('user')) {
@@ -12,6 +21,7 @@ document.getElementById('userList').addEventListener('click', function(event) {
 
 function switchUser(recipientId) {
   currentRecipientId = recipientId;
+
   if (!messageStore[recipientId]) {
     fetchAndDisplayHistory(recipientId);
   } else {
@@ -31,8 +41,16 @@ function fetchAndDisplayHistory(recipientId) {
     });
 }
 
+function escapeHTML(html) {
+  var text = document.createTextNode(html);
+  var p = document.createElement('p');
+  p.appendChild(text);
+  return p.innerHTML;
+}
+
 function displayMessages(recipientId) {
-  document.getElementById('chatWindow').innerHTML = '';
+  chatWindowValue = document.getElementById('chatWindow').innerHTML;
+  chatWindowValue = "";
   var messages = messageStore[recipientId] || [];
   messages.forEach(function(msg) {
     appendMessage(msg.userId, msg.message, msg.userId === currentUserId.toString());
@@ -64,7 +82,7 @@ function sendMessage(message) {
   }
 
   // Optimistically display the message
-  var messageId = 'msg_' + new Date().getTime();  // Unique ID for the message
+  const messageId = 'msg_' + new Date().getTime();  // Unique ID for the message
   storeAndAppendMessage(currentUserId, currentRecipientId, message, true, messageId);
 
   socket.emit('send_message', {
@@ -81,7 +99,7 @@ function sendMessage(message) {
 }
 
 function storeAndAppendMessage(senderId, recipientId, message, isSender, messageId) {
-  var messageId = messageId || 'msg_' + new Date().getTime();
+  messageId = messageId || 'msg_' + new Date().getTime();
   if (!messageStore[recipientId]) {
     messageStore[recipientId] = [];
   }
@@ -94,14 +112,14 @@ function storeAndAppendMessage(senderId, recipientId, message, isSender, message
 }
 
 function appendErrorMessage(errorMessage) {
-  var errorElement = document.createElement('div');
+  let errorElement = document.createElement('div');
   errorElement.className = 'message error-message';
   errorElement.innerHTML = errorMessage;
   document.getElementById('chatWindow').appendChild(errorElement);
 }
 
 function removeMessage(messageId) {
-  var messageElement = document.getElementById(messageId);
+  let messageElement = document.getElementById(messageId);
   if (messageElement) {
     messageElement.remove();
   }
@@ -112,14 +130,12 @@ socket.on('receive_message', function(data) {
 });
 
 function appendMessage(userId, message, isSender, messageId) {
-  var messageElement = document.createElement('div');
-  messageElement.id = messageId; // Set the unique ID
+  let messageElement = document.createElement('div');
+  messageElement.id = messageId;
   messageElement.className = isSender ? 'message sent-message' : 'message received-message';
-  messageElement.innerHTML = `<strong>${isSender ? 'Me' : userId}:</strong> ${message}`;
+  messageElement.innerHTML = `<strong>${isSender ? 'Me' : userId}:</strong> ${escapeHTML(message)}`;
 
   document.getElementById('chatWindow').appendChild(messageElement);
-  var chatWindow = document.getElementById('chatWindow');
+  let chatWindow = document.getElementById('chatWindow');
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
-
-
