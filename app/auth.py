@@ -1,10 +1,10 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask import session
+from flask import jsonify
 from flask_login import login_user, logout_user
 
 from app.database import db
 from app.models import User
-from flask import jsonify
 
 auth = Blueprint("auth", __name__)
 
@@ -23,7 +23,8 @@ def signup():
         user = User.query.filter_by(username=username).first()
 
         if user:
-            return jsonify(message="Username already exists"), 409
+            flash("Username already exists", "error")
+            return redirect(url_for("auth.signup"))
 
         new_user = User(username=username)
         new_user.set_password(password)
@@ -45,7 +46,8 @@ def login():
         user = User.query.filter_by(username=username).first()
 
         if not user or not user.check_password(password):
-            return jsonify(message="Invalid login details"), 401
+            flash("Invalid login details", "error")
+            return redirect(url_for("auth.login"))
 
         login_user(user)
         session.permanent = True
