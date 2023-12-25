@@ -1,19 +1,9 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
 
-<head>
-  <title>Signup</title>
-</head>
+{% block title %}Home{% endblock %}
 
-<body>
-  <h1>Welcome to the Chat App</h1>
-  <nav>
-    <a href="{{ url_for('main.index') }}">Home</a> |
-    <a href="{{ url_for('chat.chat') }}">Chat</a> |
-    <a href="{{ url_for('auth.login') }}">Login</a> |
-    <a href="{{ url_for('auth.signup') }}">Signup</a> |
-    <a href="{{ url_for('auth.logout') }}">Logout</a>
-  </nav>
+{% block content %}
+
   <form action="{{ url_for('auth.signup') }}" method="post">
     <input type="text" name="username" placeholder="Username">
     <input type="password" name="password" placeholder="Password">
@@ -22,6 +12,5 @@
   {% for message in get_flashed_messages() %}
   <div>{{ message }}</div>
   {% endfor %}
-</body>
 
-</html>
+% endblock %}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>{% block title %}{% endblock %} - Chat App</title>
+  {% block css %}{% endblock %}
+</head>
+
+<body>
+  <h1>Welcome to the Chat App</h1>
+  <nav>
+    <a href="{{ url_for('main.index') }}">Home</a> |
+    <a href="{{ url_for('chat.chat') }}">Chat</a> |
+    <a href="{{ url_for('auth.login') }}">Login</a> |
+    <a href="{{ url_for('auth.signup') }}">Signup</a> |
+    <a href="{{ url_for('auth.logout') }}">Logout</a>
+  </nav>
+
+  {% block content %}{% endblock %}
+  {% block js %}{% endblock %}
+</body>
+
+</html>

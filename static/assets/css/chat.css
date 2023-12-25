@@ -1,0 +1,40 @@
+.user {
+  cursor: pointer;
+  margin: 5px;
+  padding: 5px;
+  border: 1px solid #ddd;
+}
+
+.active {
+  background-color: #efefef;
+}
+
+#messageInput {
+  margin-top: 10px;
+}
+
+.message {
+  margin-bottom: 10px;
+  padding: 5px;
+  border-radius: 5px;
+  background-color: #f1f1f1;
+  max-width: 70%;
+  word-wrap: break-word;
+}
+
+.sent-message {
+  background-color: #dcf8c6;
+  text-align: right;
+}
+
+.received-message {
+  background-color: #fff;
+  text-align: left;
+}
+
+#chatWindow {
+  height: 300px;
+  overflow-y: scroll;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
