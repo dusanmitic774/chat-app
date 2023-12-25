@@ -1,4 +1,5 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import session
 from flask_login import login_user, logout_user
 
 from app.database import db
@@ -47,6 +48,7 @@ def login():
             return jsonify(message="Invalid login details"), 401
 
         login_user(user)
+        session.permanent = True
         flash("Login successful!")
 
         return redirect(url_for("main.index"))
