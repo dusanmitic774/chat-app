@@ -16,11 +16,14 @@ def send_friend_request():
     if not json_data:
         return jsonify({"error": "Invalid JSON data"}), 400
 
-    username = json_data.get("username")
+    identifier = json_data.get("identifier")
 
-    receiver = User.query.filter_by(username=username).first()
+    receiver = User.query.filter(
+        or_(User.username == identifier, User.email == identifier)
+    ).first()
+
     if not receiver:
-        app_logger.info(f"User {username} not found.")
+        app_logger.info(f"User {identifier} not found.")
         return jsonify({"error": "User not found"}), 404
 
     if receiver == current_user:

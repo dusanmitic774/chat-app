@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const addFriendButton = document.getElementById('addFriendButton');
 
   addFriendButton.addEventListener('click', function() {
-    const username = document.getElementById('friendUsername').value;
-    sendFriendRequestByUsername(username);
+    const identifier = document.getElementById('identifier').value;
+    sendFriendRequestByUsername(identifier);
   });
 
   document.querySelectorAll('.accept-request').forEach(button => {
@@ -29,13 +29,13 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-function sendFriendRequestByUsername(username) {
+function sendFriendRequestByUsername(identifier) {
   fetch('/send-friend-request', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ username: username }),
+    body: JSON.stringify({ identifier: identifier }),
     credentials: 'same-origin'
   }).then(response => response.json())
     .then(data => {

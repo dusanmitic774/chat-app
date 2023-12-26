@@ -22,6 +22,7 @@ class User(UserMixin, db.Model):
         backref="receiver",
         lazy="dynamic",
     )
+    email = db.Column(db.String(120), unique=True, nullable=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
