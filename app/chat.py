@@ -1,11 +1,12 @@
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 from flask_socketio import emit, join_room
+from sqlalchemy import and_, or_
 
 from app import socketio
 from app.database import db
 from app.logs import app_logger
-from app.models import Message, User
+from app.models import Friendship, Message, User
 
 chat_bp = Blueprint("chat", __name__)
 
@@ -14,7 +15,6 @@ chat_bp = Blueprint("chat", __name__)
 def on_connect():
     if current_user.is_authenticated:
         join_room(str(current_user.id))
-        app_logger.info(f"User {current_user.id} has connected and joined their room.")
 
 
 @chat_bp.route("/chat")
@@ -22,14 +22,57 @@ def chat():
     if not current_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
-    users = User.query.filter(User.id != current_user.id).all()
+    friends = (
+        User.query.join(
+            Friendship,
+            or_(Friendship.receiver_id == User.id, Friendship.requester_id == User.id),
+        )
+        .filter(
+            User.id != current_user.id,
+            or_(
+                Friendship.receiver_id == current_user.id,
+                Friendship.requester_id == current_user.id,
+            ),
+            Friendship.status == "accepted",
+        )
+        .all()
+    )
 
-    return render_template("chat.html", user=current_user, users=users)
+    return render_template("chat.html", user=current_user, friends=friends)
 
 
 @socketio.on("send_message", namespace="/chat")
 def handle_send_message_event(data):
     if current_user.is_authenticated and str(current_user.id) == str(data["sender_id"]):
+        app_logger.info("I have gotten the request to send a messege")
+        if data["sender_id"] == data["recipient_id"]:
+            app_logger.info("Cannot send messages to oneself.")
+            return False
+
+        # Check if sender and recipient are friends
+        try:
+            friendship = Friendship.query.filter(
+                and_(
+                    or_(
+                        and_(
+                            Friendship.requester_id == data["sender_id"],
+                            Friendship.receiver_id == data["recipient_id"],
+                        ),
+                        and_(
+                            Friendship.requester_id == data["recipient_id"],
+                            Friendship.receiver_id == data["sender_id"],
+                        ),
+                    ),
+                    Friendship.status == "accepted",
+                )
+            ).first()
+        except Exception as e:
+            app_logger.info(f"Error querying Friendship: {e}")
+
+        if not friendship:
+            app_logger.info("Cannot send messages to non-friends.")
+            return False
+
         try:
             new_message = Message(
                 sender_id=data["sender_id"],

@@ -8,6 +8,7 @@ from app.auth import auth as auth_blueprint
 from app.config import Config, TestingConfig
 from app.database import db
 from app.main import main as main_blueprint
+from app.friendship import friendship_blueprint
 from app.models import User
 
 socketio = SocketIO(
@@ -28,6 +29,7 @@ def create_app(config_name="default"):
 
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(main_blueprint)
+    app.register_blueprint(friendship_blueprint)
 
     from app.chat import chat_bp
 

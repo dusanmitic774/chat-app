@@ -7,12 +7,37 @@
 {% endblock %}
 
 {% block content %}
-<div id="userList">
-  {% for user in users %}<div class="user" data-user-id="{{ user.id }}">{{ user.username }}</div>{% endfor %}
+<div id="addFriend">
+  <input type="text" id="friendUsername" placeholder="Enter username">
+  <button id="addFriendButton">Add Friend</button>
 </div>
+
+<div id="userList">
+  {% for user in friends %}
+  <div class="user" data-user-id="{{ user.id }}">
+    {{ user.username }}
+    <button class="remove-friend" data-user-id="{{ user.id }}">Remove Friend</button>
+  </div>
+  {% endfor %}
+</div>
+
+<div id="pendingRequests">
+  <h4>Pending Friend Requests</h4>
+  {% for request in current_user.received_requests.filter_by(status='pending').all() %}
+  <div class="friend-request">
+    <span>{{ request.requester.username }}</span>
+    <button class="accept-request" data-request-id="{{ request.id }}">Accept</button>
+    <button class="decline-request" data-request-id="{{ request.id }}">Decline</button>
+  </div>
+  {% endfor %}
+</div>
+
 <div id="chatWindow"></div>
+
 <input type="text" id="messageInput" placeholder="Type a message...">
+
 <button id="sendButton">Send</button>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
   integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
   crossorigin="anonymous"></script>
@@ -20,5 +45,7 @@
 <script>
   const currentUserId = {{user.id | tojson }};
 </script>
+
 <script src="{{ url_for('static', filename='assets/js/chat.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/friendship.js') }}"></script>
 {% endblock %}

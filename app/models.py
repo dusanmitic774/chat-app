@@ -10,10 +10,17 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
-    friends = db.relationship(
+    sent_requests = db.relationship(
         "Friendship",
-        primaryjoin="or_(User.id==Friendship.user_id, User.id==Friendship.friend_id)",
-        backref="user",
+        foreign_keys="Friendship.requester_id",
+        backref="requester",
+        lazy="dynamic",
+    )
+    received_requests = db.relationship(
+        "Friendship",
+        foreign_keys="Friendship.receiver_id",
+        backref="receiver",
+        lazy="dynamic",
     )
 
     def set_password(self, password):
@@ -25,9 +32,9 @@ class User(UserMixin, db.Model):
 
 class Friendship(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    friend_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    status = db.Column(db.String(10))  # e.g., 'pending', 'accepted'
+    requester_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    receiver_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    status = db.Column(db.String(10))
 
 
 class Message(db.Model):
