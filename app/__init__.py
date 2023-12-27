@@ -2,19 +2,14 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
-from flask_socketio import SocketIO
 
 from app.auth import auth as auth_blueprint
 from app.config import Config, TestingConfig
 from app.database import db
-from app.main import main as main_blueprint
+from app.extensions import socketio
 from app.friendship import friendship_blueprint
+from app.main import main as main_blueprint
 from app.models import User
-
-socketio = SocketIO(
-    cors_allowed_origins="*",
-    allow_websocket_origins=["*"],
-)
 
 
 def create_app(config_name="default"):

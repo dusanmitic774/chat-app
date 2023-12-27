@@ -68,9 +68,6 @@ def handle_send_message_event(data):
             ).first()
         except Exception as e:
             app_logger.info(f"Error querying Friendship: {e}")
-
-        if not friendship:
-            app_logger.info("Cannot send messages to non-friends.")
             return False
 
         try:

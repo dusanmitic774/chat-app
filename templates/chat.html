@@ -7,6 +7,8 @@
 {% endblock %}
 
 {% block content %}
+<div id="flash-messages"></div>
+
 <div id="addFriend">
   <input type="text" id="identifier" placeholder="Enter username or email...">
   <button id="addFriendButton">Add Friend</button>
@@ -23,7 +25,7 @@
 
 <div id="pendingRequests">
   <h4>Pending Friend Requests</h4>
-  {% for request in current_user.received_requests.filter_by(status='pending').all() %}
+  {% for request in current_user.received_requests.filter_by(status="pending").all() %}
   <div class="friend-request">
     <span>{{ request.requester.username }}</span>
     <button class="accept-request" data-request-id="{{ request.id }}">Accept</button>
