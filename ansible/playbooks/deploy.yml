@@ -62,6 +62,16 @@
       become: yes
       become_user: ansible_chat_app
 
+    - name: Ensure logs directory exists
+      file:
+        path: "/home/ansible_chat_app/chat-app-flask/logs"
+        state: directory
+        owner: ansible_chat_app
+        group: ansible_chat_app
+        mode: '0755'
+      become: yes
+      become_user: ansible_chat_app
+
     - name: Build Docker containers
       command: docker compose build
       args:
