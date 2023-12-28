@@ -1,40 +1,42 @@
-.user {
-  cursor: pointer;
-  margin: 5px;
-  padding: 5px;
-  border: 1px solid #ddd;
+body{
+  margin-top:20px;
 }
-
-.active {
-  background-color: #efefef;
+.chat-online {
+    color: #34ce57
 }
-
-#messageInput {
-  margin-top: 10px;
+.chat-offline {
+    color: #e4606d
 }
-
-.message {
-  margin-bottom: 10px;
-  padding: 5px;
-  border-radius: 5px;
-  background-color: #f1f1f1;
-  max-width: 70%;
-  word-wrap: break-word;
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    max-height: 500px;
+    min-height: 500px;
+    overflow-y: scroll
 }
-
-.sent-message {
-  background-color: #dcf8c6;
-  text-align: right;
+.chat-message-left,
+.chat-message-right {
+    display: flex;
+    flex-shrink: 0
 }
-
-.received-message {
-  background-color: #fff;
-  text-align: left;
+.chat-message-left {
+    margin-right: auto
 }
-
-#chatWindow {
-  height: 300px;
-  overflow-y: scroll;
-  border: 1px solid #ccc;
-  padding: 10px;
+.chat-message-right {
+    flex-direction: row-reverse;
+    margin-left: auto
+}
+.py-3 {
+    padding-top: 1rem!important;
+    padding-bottom: 1rem!important;
+}
+.px-4 {
+    padding-right: 1.5rem!important;
+    padding-left: 1.5rem!important;
+}
+.flex-grow-0 {
+    flex-grow: 0!important;
+}
+.border-top {
+    border-top: 1px solid #dee2e6!important;
 }

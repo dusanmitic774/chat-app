@@ -11,16 +11,24 @@ let socket = io.connect(
 let currentRecipientId = null;
 const messageStore = {};
 
-document.getElementById('userList').addEventListener('click', function(event) {
-  if (event.target.classList.contains('user')) {
-    document.querySelectorAll('.user').forEach(i => i.classList.remove('active'));
-    event.target.classList.add('active');
-    switchUser(event.target.getAttribute('data-user-id'));
+document.getElementById('friendsList').addEventListener('click', function(event) {
+  let targetElement = event.target;
+
+  // Find the parent .user element
+  while (targetElement && !targetElement.hasAttribute('data-user-id')) {
+    targetElement = targetElement.parentElement;
+  }
+
+  if (targetElement && targetElement.hasAttribute('data-user-id')) {
+    const userId = targetElement.getAttribute('data-user-id');
+    const username = targetElement.getAttribute('data-username');
+    switchUser(userId, username);
   }
 });
 
-function switchUser(recipientId) {
+function switchUser(recipientId, recipientUsername) {
   currentRecipientId = recipientId;
+  document.getElementById('chatUsername').textContent = recipientUsername;
 
   if (!messageStore[recipientId]) {
     fetchAndDisplayHistory(recipientId);
@@ -35,7 +43,10 @@ function fetchAndDisplayHistory(recipientId) {
     .then(data => {
       messageStore[recipientId] = data.messages.map(msg => ({
         userId: msg.sender_id.toString(),
-        message: msg.content
+        username: msg.sender_username,
+        message: msg.content,
+        isSender: msg.sender_id.toString() === currentUserId.toString(),
+        timestamp: msg.timestamp
       }));
       displayMessages(recipientId);
     });
@@ -48,13 +59,17 @@ function escapeHTML(html) {
   return p.innerHTML;
 }
 
+
 function displayMessages(recipientId) {
-  chatWindowValue = document.getElementById('chatWindow').innerHTML;
-  chatWindowValue = "";
-  var messages = messageStore[recipientId] || [];
+  var chatMessages = document.querySelector(".chat-messages");
+  chatMessages.textContent = "";
+
+  let messages = messageStore[recipientId] || [];
   messages.forEach(function(msg) {
-    appendMessage(msg.userId, msg.message, msg.userId === currentUserId.toString());
+    appendMessage(msg.userId, msg.username, msg.message, msg.isSender, msg.timestamp);
   });
+
+  scrollToBottom();
 }
 
 socket.on('connect', function() {
@@ -82,8 +97,15 @@ function sendMessage(message) {
   }
 
   // Optimistically display the message
-  const messageId = 'msg_' + new Date().getTime();  // Unique ID for the message
-  storeAndAppendMessage(currentUserId, currentRecipientId, message, true, messageId);
+  const timestamp = new Date().toISOString();
+  storeAndAppendMessage(
+    currentUserId,
+    currentRecipientId,
+    message,
+    true,
+    timestamp,
+    currentUsername
+  );
 
   socket.emit('send_message', {
     sender_id: currentUserId,
@@ -92,22 +114,42 @@ function sendMessage(message) {
   }, function(success) {
     if (!success) {
       // Remove the optimistic message and show error
-      removeMessage(messageId);
+      // removeMessage(messageId);
       appendErrorMessage("Failed to send");
     }
   });
+
+  scrollToBottom()
 }
 
-function storeAndAppendMessage(senderId, recipientId, message, isSender, messageId) {
-  messageId = messageId || 'msg_' + new Date().getTime();
+function storeAndAppendMessage(
+  senderId,
+  recipientId,
+  message,
+  isSender,
+  timestamp,
+  username
+) {
   if (!messageStore[recipientId]) {
     messageStore[recipientId] = [];
   }
 
-  messageStore[recipientId].push({ userId: senderId, message: message, isSender: isSender, messageId: messageId });
+  messageStore[recipientId].push({
+    userId: senderId,
+    username: username,
+    message: message,
+    isSender: isSender,
+    timestamp: timestamp
+  });
 
   if (currentRecipientId && (senderId == currentRecipientId || recipientId == currentRecipientId)) {
-    appendMessage(senderId, message, isSender, messageId);
+    appendMessage(
+      senderId,
+      username,
+      message,
+      isSender,
+      timestamp
+    );
   }
 }
 
@@ -118,24 +160,72 @@ function appendErrorMessage(errorMessage) {
   document.getElementById('chatWindow').appendChild(errorElement);
 }
 
-function removeMessage(messageId) {
-  let messageElement = document.getElementById(messageId);
-  if (messageElement) {
-    messageElement.remove();
-  }
-}
+// function removeMessage(messageId) {
+//   let messageElement = document.getElementById(messageId);
+//   if (messageElement) {
+//     messageElement.remove();
+//   }
+// }
 
-socket.on('receive_message', function(data) {
-  storeAndAppendMessage(data.sender_id, data.recipient_id, data.message, data.sender_id === currentUserId);
+socket.on('receive_message', data => {
+  storeAndAppendMessage(
+    data.sender_id,
+    data.recipient_id,
+    data.message,
+    data.sender_id === currentUserId,
+    data.timestamp,
+    data.sender_username
+  );
 });
 
-function appendMessage(userId, message, isSender, messageId) {
+function appendMessage(
+  userId,
+  username,
+  message,
+  isSender,
+  timestamp
+) {
   let messageElement = document.createElement('div');
-  messageElement.id = messageId;
-  messageElement.className = isSender ? 'message sent-message' : 'message received-message';
-  messageElement.innerHTML = `<strong>${isSender ? 'Me' : userId}:</strong> ${escapeHTML(message)}`;
+  messageElement.className = isSender ? 'chat-message-right pb-4' : 'chat-message-left pb-4';
 
-  document.getElementById('chatWindow').appendChild(messageElement);
-  let chatWindow = document.getElementById('chatWindow');
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+  let formattedTimestamp = timestamp ? formatTimestamp(timestamp) : '';
+  let messageContent = `
+    <div>
+      <!-- Placeholder for user image -->
+      <div class="text-muted small text-nowrap mt-2">${formattedTimestamp}</div>
+    </div>
+    <div class="flex-shrink-1 bg-light rounded py-2 px-3 ${isSender ? 'mr-3' : 'ml-3'}">
+      <div class="font-weight-bold mb-1">${isSender ? 'You' : username}</div>
+      ${escapeHTML(message)}
+    </div>
+  `;
+
+  messageElement.innerHTML = messageContent;
+  document.querySelector('.chat-messages').appendChild(messageElement);
+
+  scrollToBottom()
+}
+
+function formatTimestamp(isoString) {
+  if (!isoString) return '';
+
+  let parts = isoString.split('.');
+  let dateTimeWithoutMicroseconds = parts[0];
+
+  // Ensure the timestamp is interpreted as UTC
+  dateTimeWithoutMicroseconds += dateTimeWithoutMicroseconds.endsWith('Z') ? '' : 'Z';
+
+  const date = new Date(dateTimeWithoutMicroseconds);
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+}
+
+function scrollToBottom() {
+  const chatMessages = document.querySelector(".chat-messages");
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 }

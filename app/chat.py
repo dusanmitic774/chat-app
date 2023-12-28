@@ -1,3 +1,5 @@
+from datetime import timezone
+
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
 from flask_socketio import emit, join_room
@@ -50,24 +52,24 @@ def handle_send_message_event(data):
             return False
 
         # Check if sender and recipient are friends
-        try:
-            friendship = Friendship.query.filter(
-                and_(
-                    or_(
-                        and_(
-                            Friendship.requester_id == data["sender_id"],
-                            Friendship.receiver_id == data["recipient_id"],
-                        ),
-                        and_(
-                            Friendship.requester_id == data["recipient_id"],
-                            Friendship.receiver_id == data["sender_id"],
-                        ),
+        friendship = Friendship.query.filter(
+            and_(
+                Friendship.status == "accepted",
+                or_(
+                    and_(
+                        Friendship.requester_id == data["sender_id"],
+                        Friendship.receiver_id == data["recipient_id"],
                     ),
-                    Friendship.status == "accepted",
-                )
-            ).first()
-        except Exception as e:
-            app_logger.info(f"Error querying Friendship: {e}")
+                    and_(
+                        Friendship.requester_id == data["recipient_id"],
+                        Friendship.receiver_id == data["sender_id"],
+                    ),
+                ),
+            )
+        ).first()
+
+        if not friendship:
+            app_logger.info("The users are not friends, cannot send message.")
             return False
 
         try:
@@ -78,6 +80,17 @@ def handle_send_message_event(data):
             )
             db.session.add(new_message)
             db.session.commit()
+
+            sender = User.query.get(data["sender_id"])
+            if sender:
+                data["sender_username"] = sender.username
+            else:
+                app_logger.error("Sender not found")
+                return False
+
+            data["timestamp"] = new_message.timestamp.replace(
+                tzinfo=timezone.utc
+            ).isoformat()
 
             app_logger.info(
                 f"{data['sender_id']} has sent a message to {data['recipient_id']}: {data['message']}"
@@ -116,9 +129,10 @@ def get_messages():
     messages_data = [
         {
             "sender_id": msg.sender_id,
+            "sender_username": msg.sender.username,
             "recipient_id": msg.recipient_id,
             "content": msg.content,
-            "timestamp": msg.timestamp.isoformat(),
+            "timestamp": msg.timestamp.replace(tzinfo=timezone.utc).isoformat(),
         }
         for msg in messages
     ]

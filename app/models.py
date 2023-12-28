@@ -44,3 +44,6 @@ class Message(db.Model):
     recipient_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     content = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    sender = db.relationship("User", foreign_keys=[sender_id])
+    recipient = db.relationship("User", foreign_keys=[recipient_id])

@@ -44,7 +44,9 @@ def send_friend_request():
     ).first()
 
     if existing_request:
-        app_logger.info("Already friends")
+        app_logger.info(
+            f"Users {current_user.username} & {receiver.username} are already friends"
+        )
         return jsonify({"error": True, "message": "Friend request already sent"}), 400
 
     friend_request = Friendship(
@@ -59,7 +61,7 @@ def send_friend_request():
         {
             "requester_id": current_user.id,
             "requester_username": current_user.username,
-            "friend_request_id": friend_request.id
+            "friend_request_id": friend_request.id,
         },
         room=str(receiver.id),
         namespace="/chat",
@@ -84,7 +86,7 @@ def accept_friend_request(request_id):
         "friend_request_accepted",
         {"receiver_id": current_user.id, "receiver_username": current_user.username},
         room=str(friend_request.requester_id),
-        namespace="/chat"
+        namespace="/chat",
     )
 
     return jsonify({"error": False, "message": "Friend request accepted"}), 200
@@ -126,4 +128,33 @@ def remove_friend(friend_id):
     db.session.delete(friendship)
     db.session.commit()
 
+    # Emit an event to notify the removed friend
+    socketio.emit(
+        "friend_removed",
+        {"removed_by_id": current_user.id},
+        room=str(friend_id),
+        namespace="/chat",
+    )
+
     return jsonify({"error": False, "message": "Friend removed"}), 200
+
+
+@friendship_blueprint.route("/get-pending-requests", methods=["GET"])
+@login_required
+def get_pending_requests():
+    pending_requests = (
+        Friendship.query.filter_by(receiver_id=current_user.id, status="pending")
+        .join(User, User.id == Friendship.requester_id)
+        .all()
+    )
+
+    requests_data = [
+        {
+            "requester_id": req.requester_id,
+            "requester_username": req.requester.username,
+            "friend_request_id": req.id,
+        }
+        for req in pending_requests
+    ]
+
+    return jsonify(requests_data)

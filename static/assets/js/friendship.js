@@ -1,42 +1,39 @@
+let pendingFriendRequests = [];
+
 document.addEventListener('DOMContentLoaded', function() {
+  fetchPendingFriendRequests();
+
+  // Attach event listener to the pendingRequestsList for delegation
+  const pendingRequestsList = document.getElementById('pendingRequestsList');
+
+  pendingRequestsList.addEventListener('click', function(event) {
+    let targetButton = event.target.closest('.accept-request, .decline-request');
+    if (targetButton) {
+      const requestId = targetButton.getAttribute('data-request-id');
+      if (targetButton.classList.contains('accept-request')) {
+        updateFriendRequest(requestId, 'accept');
+      } else if (targetButton.classList.contains('decline-request')) {
+        updateFriendRequest(requestId, 'decline');
+      }
+    }
+  });
+
+  const removeFriendButton = document.getElementById('removeFriendButton');
+  removeFriendButton.addEventListener('click', function() {
+    if (currentActiveFriendId) {
+      removeFriend(currentActiveFriendId);
+    }
+  });
+
+  // Modal
   const addFriendButton = document.getElementById('addFriendButton');
 
   addFriendButton.addEventListener('click', function() {
-    const identifier = document.getElementById('identifier').value;
+    const identifier = document.getElementById('friendIdentifier').value;
+    console.log(identifier)
     sendFriendRequestByUsernameOrEmail(identifier);
   });
-
-  document.querySelectorAll('.accept-request').forEach(button => {
-    button.addEventListener('click', function() {
-      const requestId = this.getAttribute('data-request-id');
-      updateFriendRequest(requestId, 'accept');
-    });
-  });
-
-  document.querySelectorAll('.decline-request').forEach(button => {
-    button.addEventListener('click', function() {
-      const requestId = this.getAttribute('data-request-id');
-      updateFriendRequest(requestId, 'decline');
-    });
-  });
-
-  document.getElementById('userList').addEventListener('click', function(event) {
-    if (event.target.classList.contains('remove-friend')) {
-      const friendId = event.target.getAttribute('data-user-id');
-      removeFriend(friendId);
-    }
-  });
-
-  // Delegate event listener for dynamic elements
-  const pendingRequestsContainer = document.getElementById('pendingRequests');
-  pendingRequestsContainer.addEventListener('click', function(event) {
-    const requestId = event.target.getAttribute('data-request-id');
-    if (event.target.classList.contains('accept-request')) {
-      updateFriendRequest(requestId, 'accept');
-    } else if (event.target.classList.contains('decline-request')) {
-      updateFriendRequest(requestId, 'decline');
-    }
-  });
+  // End Modal
 
   let socket = io(
     window.location.protocol +
@@ -54,34 +51,107 @@ document.addEventListener('DOMContentLoaded', function() {
 
   socket.on('new_friend_request', function(data) {
     console.log("New friend request received");
+    pendingFriendRequests.push(data);
     displayNewRequest(data);
   });
 
   socket.on('friend_request_accepted', function(data) {
     console.log("Friend request accepted by", data.receiver_username);
-    addNewFriend(data.receiver_id, data.receiver_username);
+    appendFriendToUI(data.receiver_id, data.receiver_username);
+  });
+
+  socket.on('friend_removed', function(data) {
+    // clearChatWindow();
+    console.log("You have been removed as a friend")
+    removeFriendFromList(data.removed_by_id);
+  });
+
+  let toggleRequests = document.getElementById('toggleRequests')
+  const toggleChat = document.getElementById('toggleChat');
+
+  toggleRequests.addEventListener('click', function() {
+    // Show pending requests and hide chat icon
+    document.getElementById('pendingRequestsList').style.display = 'block';
+    document.getElementById('friendsList').style.display = 'none';
+    toggleChat.style.display = 'inline';
+    toggleRequests.style.display = 'none';
+    displayAllPendingRequests();
+  });
+
+  toggleChat.addEventListener('click', function() {
+    // Show friends list and hide requests icon
+    document.getElementById('pendingRequestsList').style.display = 'none';
+    document.getElementById('friendsList').style.display = 'block';
+    toggleChat.style.display = 'none';
+    toggleRequests.style.display = 'inline';
   });
 });
 
-function addNewFriend(userId, username) {
-  const userListContainer = document.getElementById('userList');
-  const newFriendHTML = `
-        <div class="user" data-user-id="${userId}">
-            ${username}
-            <button class="remove-friend" data-user-id="${userId}">Remove Friend</button>
-        </div>`;
-  userListContainer.insertAdjacentHTML('beforeend', newFriendHTML);
+function displayAllPendingRequests() {
+  const container = document.getElementById('pendingRequestsList');
+  container.innerHTML = '';
+  pendingFriendRequests.forEach(request => {
+    displayNewRequest(request);
+  });
+}
+
+function fetchPendingFriendRequests() {
+  fetch('/get-pending-requests', {
+    method: 'GET',
+    credentials: 'same-origin'
+  }).then(response => response.json())
+    .then(data => {
+      pendingFriendRequests = data;
+      displayAllPendingRequests();
+    }).catch(error => {
+      console.error('Error fetching pending friend requests:', error);
+      // Optionally handle error on UI
+    });
+}
+
+function removeFriendFromList(friendId) {
+  const friendElement = document.querySelector(`[data-user-id="${friendId}"]`);
+  if (friendElement) {
+    friendElement.remove();
+  }
 }
 
 function displayNewRequest(data) {
-  const pendingRequestsContainer = document.getElementById('pendingRequests');
+  const pendingRequestsContainer = document.getElementById('pendingRequestsList');
   const newRequestHTML = `
-    <div class="friend-request">
-        <span>${data.requester_username}</span>
-        <button class="accept-request" data-request-id="${data.friend_request_id}">Accept</button>
-        <button class="decline-request" data-request-id="${data.friend_request_id}">Decline</button>
-    </div>`;
+    <a href="#" class="list-group-item list-group-item-action border-0 user">
+      <div class="d-flex align-items-start justify-content-between">
+        <div class="flex-grow-1 ml-3">
+          ${data.requester_username}
+        </div>
+        <div>
+          <button class="btn btn-success accept-request" data-request-id="${data.friend_request_id}">
+            <i class="fa-regular fa-circle-check"></i>
+          </button>
+          <button class="btn btn-danger decline-request" data-request-id="${data.friend_request_id}">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+    </a>`;
   pendingRequestsContainer.insertAdjacentHTML('beforeend', newRequestHTML);
+}
+
+function appendFriendToUI(userId, username) {
+  const friendsListContainer = document.getElementById('friendsList');
+  const newFriendHTML = `
+    <a href="#" class="list-group-item list-group-item-action border-0 user" data-user-id="${userId}" data-username="${username}" onclick="setActiveFriend('${userId}', '${username}')">
+      <div class="d-flex align-items-start">
+        <img src="path_to_default_avatar" class="rounded-circle mr-1" alt="" width="40" height="40">
+        <div class="flex-grow-1 ml-3">
+          ${username}
+          <div class="small">
+            <span class="fas fa-circle chat-offline"></span> Offline
+          </div>
+        </div>
+      </div>
+    </a>`;
+  friendsListContainer.insertAdjacentHTML('beforeend', newFriendHTML);
 }
 
 function sendFriendRequestByUsernameOrEmail(identifier) {
@@ -97,16 +167,15 @@ function sendFriendRequestByUsernameOrEmail(identifier) {
       return response.json();
     })
     .then(data => {
-      displayFlashMessage(data.message, data.error);
+      console.log('Error', data);
     })
     .catch(error => {
-      displayFlashMessage(error, true);
+      console.error('Error sending friend request:', error);
     });
 }
 
 function updateFriendRequest(requestId, action) {
   const url = action === 'accept' ? `/accept-friend-request/${requestId}` : `/decline-friend-request/${requestId}`;
-  console.log(url)
   fetch(url, {
     method: 'POST',
     headers: {
@@ -115,11 +184,9 @@ function updateFriendRequest(requestId, action) {
     credentials: 'same-origin'
   }).then(response => response.json())
     .then(data => {
-      displayFlashMessage(data.message, data.error);
       location.reload(); // Reload the page to update the UI
     }).catch(error => {
       console.error(`Error updating friend request:`, error);
-      displayFlashMessage('An error occurred while accepting the friend request.', true);
     });
 }
 
@@ -132,12 +199,17 @@ function removeFriend(friendId) {
     credentials: 'same-origin'
   }).then(response => response.json())
     .then(data => {
-      displayFlashMessage(data.message, data.error);
       location.reload(); // Reload the page to update the UI
     }).catch(error => {
       console.error('Error removing friend:', error);
-      displayFlashMessage('An error occurred while removing a friend.', true);
     });
+}
+
+function setActiveFriend(friendId, friendUsername) {
+  currentActiveFriendId = friendId;
+
+  document.getElementById('chatUsername').textContent = friendUsername;
+  document.getElementById('friendInfoContainer').style.display = 'block';
 }
 
 function displayFlashMessage(message, isError = false) {
