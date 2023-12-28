@@ -20,11 +20,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  document.querySelectorAll('.remove-friend').forEach(button => {
-    button.addEventListener('click', function() {
-      const friendId = this.getAttribute('data-user-id');
+  document.getElementById('userList').addEventListener('click', function(event) {
+    if (event.target.classList.contains('remove-friend')) {
+      const friendId = event.target.getAttribute('data-user-id');
       removeFriend(friendId);
-    });
+    }
   });
 
   // Delegate event listener for dynamic elements
@@ -56,7 +56,22 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("New friend request received");
     displayNewRequest(data);
   });
+
+  socket.on('friend_request_accepted', function(data) {
+    console.log("Friend request accepted by", data.receiver_username);
+    addNewFriend(data.receiver_id, data.receiver_username);
+  });
 });
+
+function addNewFriend(userId, username) {
+  const userListContainer = document.getElementById('userList');
+  const newFriendHTML = `
+        <div class="user" data-user-id="${userId}">
+            ${username}
+            <button class="remove-friend" data-user-id="${userId}">Remove Friend</button>
+        </div>`;
+  userListContainer.insertAdjacentHTML('beforeend', newFriendHTML);
+}
 
 function displayNewRequest(data) {
   const pendingRequestsContainer = document.getElementById('pendingRequests');

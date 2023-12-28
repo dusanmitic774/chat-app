@@ -80,6 +80,13 @@ def accept_friend_request(request_id):
     friend_request.status = "accepted"
     db.session.commit()
 
+    socketio.emit(
+        "friend_request_accepted",
+        {"receiver_id": current_user.id, "receiver_username": current_user.username},
+        room=str(friend_request.requester_id),
+        namespace="/chat"
+    )
+
     return jsonify({"error": False, "message": "Friend request accepted"}), 200
 
 
