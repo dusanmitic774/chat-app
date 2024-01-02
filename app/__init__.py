@@ -10,6 +10,7 @@ from app.extensions import socketio
 from app.friendship import friendship_blueprint
 from app.main import main as main_blueprint
 from app.models import User
+from app.profile import profile_blueprint
 
 
 def create_app(config_name="default"):
@@ -25,6 +26,7 @@ def create_app(config_name="default"):
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(main_blueprint)
     app.register_blueprint(friendship_blueprint)
+    app.register_blueprint(profile_blueprint)
 
     from app.chat import chat_bp
 

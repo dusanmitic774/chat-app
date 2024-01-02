@@ -1,124 +1,210 @@
 {% extends "base.html" %}
-
 {% block title %}Chat Application{% endblock %}
-
 {% block css %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static' ,filename='assets/css/chat.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet"
+          href="{{ url_for('static' ,filename='assets/css/chat.css') }}">
 {% endblock %}
-
 {% block content %}
-<main class="content">
-  <div class="container p-0">
-    <h1 class="h3 mb-3">Messages</h1>
-    <div class="card">
-      <div class="row g-0">
+    <main class="content">
+        <div class="container p-0">
+            <h1 class="h3 mb-3">Messages</h1>
+            <div class="card">
+                <div class="row g-0">
+                    <div class="col-12 col-lg-5 col-xl-3 border-right">
+                        <!-- Icons -->
+                        <div class="px-4 d-none d-md-block mt-2">
+                          <div class="icons-container d-flex align-items-left">
+                            <button class="btn btn-info"
+                                    id="openAddFriendModal"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#addFriendModal">
+                                <i class="fa-solid fa-user-plus"></i>
+                            </button>
+                            <button class="btn btn-info" id="toggleRequests">
+                                <i class="fa-solid fa-user-group"></i>
+                            </button>
+                            <button class="btn btn-info" id="toggleChat" style="display: none;">
+                              <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button class="btn btn-info" id="openUserProfile">
+                                <i class="fa-solid fa-gear"></i>
+                            </button>
+                          </div>
+                        </div>
+                        <!-- Dynamic Friends List Start -->
+                        <div id="friendsList">
+                            {% for friend in friends %}
+                                <a href="#"
+                                   class="list-group-item list-group-item-action border-0 user"
+                                   data-user-id="{{ friend.id }}"
+                                   data-username="{{ friend.username }}"
+                                   onclick="setActiveFriend('{{ friend.id }}')">
+                                    <div class="d-flex align-items-start">
+                                        <img src="{{ friend.profile_picture_url }}"
+                                             class="rounded-circle mr-1"
+                                             alt="{{ friend.username }}"
+                                             width="40"
+                                             height="40">
+                                        <div class="flex-grow-1 ml-3">
+                                            {{ friend.username }}
+                                            <div class="small">
+                                                <span class="fas fa-circle {{ 'chat-online' if friend.is_online else 'chat-offline' }}"></span> {{ 'Online' if friend.is_online else 'Offline' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                        <!-- Dynamic Friends List End -->
+                        <!-- Pending Friend Requests Start -->
+                        <div id="pendingRequestsList" style="display: none;">
+                            <!-- Pending requests will be dynamically inserted here -->
+                        </div>
+                        <!-- Pending Friend Requests End -->
+                    </div>
 
-        <div class="col-12 col-lg-5 col-xl-3 border-right">
-          <!-- Icons -->
-          <div class="px-4 d-none d-md-block mt-2">
-            <!-- <button class="btn btn-info" id="openAddFriendModal"><i class="fa-solid fa-user-plus"></i></button> -->
-            <button class="btn btn-info" id="openAddFriendModal" data-bs-toggle="modal" data-bs-target="#addFriendModal"><i class="fa-solid fa-user-plus"></i></button>
-            <button class="btn btn-info" id="toggleRequests"><i class="fa-solid fa-user-group"></i></button>
-            <button class="btn btn-info" id="toggleChat" style="display: none;"><i class="fa-regular fa-comment"></i></button>
-          </div>
-          <!-- Dynamic Friends List -->
-          <div id="friendsList">
-            {% for friend in friends %}
-            <a href="#" class="list-group-item list-group-item-action border-0 user" data-user-id="{{ friend.id }}" data-username="{{ friend.username }}"  onclick="setActiveFriend('{{ friend.id }}')">
-              <div class="d-flex align-items-start">
-                <img src="{{ friend.profile_picture_url }}" class="rounded-circle mr-1" alt="{{ friend.username }}" width="40" height="40">
-                <div class="flex-grow-1 ml-3">
-                  {{ friend.username }}
-                  <div class="small">
-                    <span class="fas fa-circle {{ 'chat-online' if friend.is_online else 'chat-offline' }}"></span> {{ 'Online' if friend.is_online else 'Offline' }}
-                  </div>
+                    <div class="col-12 col-lg-7 col-xl-9" id="chatUserProfileContainer">
+                      <div id="chatContainer">
+                        <!-- Friend Information -->
+                        <div id="friendInfoContainer" style="display: none;">
+                          <div class="py-2 px-4 border-bottom d-none d-lg-block">
+                            <div class="d-flex align-items-center py-1">
+                              <div class="position-relative">
+                                <img src="https://bootdey.com/img/Content/avatar/avatar3.png" class="rounded-circle mr-1" alt="Sharon Lessman" width="40" height="40">
+                              </div>
+                              <div class="flex-grow-1 pl-3">
+                                <strong id="chatUsername"></strong>
+                                <div class="text-muted small"><em>Typing...</em></div>
+                              </div>
+                              <div>
+                                <button class="btn btn-danger btn-lg mr-1 px-3" id="removeFriendButton">Remove Friend</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Dynamic Chat Messages -->
+                        <div class="position-relative">
+                          <div class="chat-messages p-4">
+                            {% for message in messages %}
+                              <div class="chat-message-{{ 'right' if message.sender_id == user.id else 'left' }} pb-4">
+                                <div class="flex-shrink-1 bg-light rounded py-2 px-3 {{ 'mr-3' if message.sender_id == user.id else 'ml-3' }}">
+                                  <div class="font-weight-bold mb-1">{{ message.sender.username }}</div>
+                                  {{ message.content }}
+                                </div>
+                              </div>
+                            {% endfor %}
+                          </div>
+
+                        <div class="flex-grow-0 py-3 px-4 border-top">
+                            <div class="input-group">
+                                <input type="text"
+                                       class="form-control"
+                                       id="messageInput"
+                                       placeholder="Type your message">
+                                <button class="btn btn-info" id="sendButton">Send</button>
+                            </div>
+                        </div>
+                        </div>
+                      </div>
+                      <!-- User Profile -->
+                      <div id="userProfile" style="display: none;">
+                        <div class="user-profile-container">
+                          <h3>User Profile</h3>
+                          <form id="userProfileForm">
+                            <div class="mb-3">
+                              <label for="username" class="form-label">Username</label>
+                              <input type="text" class="form-control" id="username" value="{{ user.username }}" readonly>
+                              <button type="button" id="editUsername">Edit</button>
+                            </div>
+                            <div class="mb-3">
+                              <label for="email" class="form-label">Email</label>
+                              <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
+                              <button type="button" id="editEmail">Edit</button>
+                            </div>
+                            <div class="mb-3">
+                              <label for="password" class="form-label">New Password</label>
+                              <input type="password" class="form-control" id="password" placeholder="Enter new password">
+                            </div>
+                            <div class="mb-3">
+                              <label for="repeatPassword" class="form-label">Repeat New Password</label>
+                              <input type="password" class="form-control" id="repeatPassword" placeholder="Repeat new password">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                          </form>
+                        </div>
+                      </div>
+                      <!-- User Profile End -->
+                    </div>
+                    <div class="col-12 col-lg-7 col-xl-9" id="chatContainer">
+                        <!-- Friend information Start-->
+                        <div id="friendInfoContainer" style="display: none;">
+                            <div class="py-2 px-4 border-bottom d-none d-lg-block">
+                                <div class="d-flex align-items-center py-1">
+                                    <div class="position-relative">
+                                        <img src="https://bootdey.com/img/Content/avatar/avatar3.png"
+                                             class="rounded-circle mr-1"
+                                             alt="Sharon Lessman"
+                                             width="40"
+                                             height="40">
+                                    </div>
+                                    <div class="flex-grow-1 pl-3">
+                                        <strong id="chatUsername"></strong>
+                                        <div class="text-muted small">
+                                            <em>Typing...</em>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-danger btn-lg mr-1 px-3" id="removeFriendButton">Remove Friend</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Friend Information End -->
+                    </div>
                 </div>
-              </div>
-            </a>
-            {% endfor %}
-          </div>
-          <!-- Pending Friend Requests -->
-          <div id="pendingRequestsList" style="display: none;">
-            <!-- Pending requests will be dynamically inserted here -->
-          </div>
-          <hr class="d-block d-lg-none mt-1 mb-0">
+            </div>
         </div>
-
-        <div class="col-12 col-lg-7 col-xl-9">
-          <!-- Friend information -->
-          <div id="friendInfoContainer" style="display: none;">
-            <div class="py-2 px-4 border-bottom d-none d-lg-block">
-              <div class="d-flex align-items-center py-1">
-                <div class="position-relative">
-                  <img src="https://bootdey.com/img/Content/avatar/avatar3.png" class="rounded-circle mr-1"
-                    alt="Sharon Lessman" width="40" height="40">
+    </main>
+    <!-- Add Friend Modal -->
+    <div class="modal fade"
+         id="addFriendModal"
+         tabindex="-1"
+         aria-labelledby="modalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Add a New Friend</h5>
                 </div>
-                <div class="flex-grow-1 pl-3">
-                  <strong id="chatUsername"></strong>
-                  <div class="text-muted small"><em>Typing...</em></div>
+                <div class="modal-body">
+                    <input type="text"
+                           class="form-control"
+                           id="friendIdentifier"
+                           placeholder="Enter username or email">
                 </div>
-                <div>
-                  <button class="btn btn-danger btn-lg mr-1 px-3" id="removeFriendButton">Remove Friend</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="addFriendButton">Send Friend Request</button>
                 </div>
-              </div>
             </div>
-          </div>
-          <!-- Friend information end -->
-          <div class="position-relative">
-            <!-- Dynamic Chat Messages -->
-            <div class="chat-messages p-4">
-              {% for message in messages %}
-              <div class="chat-message-{{ 'right' if message.sender_id == user.id else 'left' }} pb-4">
-                <div class="chat-messages p-4">
-                  <!-- Messages will be dynamically inserted here -->
-                </div>
-                <div class="flex-shrink-1 bg-light rounded py-2 px-3 {{ 'mr-3' if message.sender_id == user.id else 'ml-3' }}">
-                  <div class="font-weight-bold mb-1">{{ message.sender.username }}</div>
-                  {{ message.content }}
-                </div>
-              </div>
-              {% endfor %}
-            </div>
-          </div>
-          <div class="flex-grow-0 py-3 px-4 border-top">
-            <div class="input-group">
-              <input type="text" class="form-control" id="messageInput" placeholder="Type your message">
-              <button class="btn btn-info" id="sendButton">Send</button>
-            </div>
-          </div>
         </div>
-
-      </div>
     </div>
-  </div>
-</main>
-
-<!-- Add Friend Modal -->
-<div class="modal fade" id="addFriendModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalLabel">Add a New Friend</h5>
-      </div>
-      <div class="modal-body">
-        <input type="text" class="form-control" id="friendIdentifier" placeholder="Enter username or email">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="addFriendButton">Send Friend Request</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
-<script>
-const currentUserId = {{ user.id | tojson }};
-const currentUsername = "{{ user.username }}";
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='assets/js/chat.js') }}"></script>
-<script src="{{ url_for('static', filename='assets/js/friendship.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+            integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+            crossorigin="anonymous"></script>
+    <script>
+        const currentUserId = {{ user.id | tojson }};
+        const currentUsername = "{{ user.username }}";
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+            integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+            crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='assets/js/chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/friendship.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/profile.js') }}"></script>
 {% endblock %}
