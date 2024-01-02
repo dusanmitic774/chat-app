@@ -27,11 +27,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Modal
   const addFriendButton = document.getElementById('addFriendButton');
+  const modalElement = document.getElementById('addFriendModal');
+  const modal = new bootstrap.Modal(modalElement);
 
   addFriendButton.addEventListener('click', function() {
     const identifier = document.getElementById('friendIdentifier').value;
-    console.log(identifier)
-    sendFriendRequestByUsernameOrEmail(identifier);
+    sendFriendRequestByUsernameOrEmail(identifier, modal);
   });
   // End Modal
 
@@ -154,7 +155,7 @@ function appendFriendToUI(userId, username) {
   friendsListContainer.insertAdjacentHTML('beforeend', newFriendHTML);
 }
 
-function sendFriendRequestByUsernameOrEmail(identifier) {
+function sendFriendRequestByUsernameOrEmail(identifier, modal) {
   fetch('/send-friend-request', {
     method: 'POST',
     headers: {
@@ -167,7 +168,12 @@ function sendFriendRequestByUsernameOrEmail(identifier) {
       return response.json();
     })
     .then(data => {
-      console.log('Error', data);
+      if (data.error) {
+        alert(data.message);
+      } else {
+        alert("Friend request sent successfully.");
+        modal.hide();
+      }
     })
     .catch(error => {
       console.error('Error sending friend request:', error);

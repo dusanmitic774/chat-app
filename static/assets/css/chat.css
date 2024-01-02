@@ -40,3 +40,9 @@ body{
 .border-top {
     border-top: 1px solid #dee2e6!important;
 }
+
+/* Modal */
+
+.modal-dialog {
+    margin-top: 20vh;
+}
