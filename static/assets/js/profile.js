@@ -49,11 +49,22 @@ document.addEventListener('DOMContentLoaded', function() {
       method: 'POST',
       body: formData
     })
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok: ' + response.statusText);
+        }
+        return response.json();
+      })
       .then(data => {
         console.log(data.message);
         // Additional handling (e.g., display a success message)
       })
-      .catch(error => console.error('Error:', error));
+      .catch(error => {
+        console.error('Error:', error.message);
+        if (error.message.includes('413')) {
+          console.log("File size too large. Please upload a smaller file.");
+          // Handle large file error here
+        }
+      });
   });
 });

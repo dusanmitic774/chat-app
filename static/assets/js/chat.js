@@ -22,13 +22,17 @@ document.getElementById('friendsList').addEventListener('click', function(event)
   if (targetElement && targetElement.hasAttribute('data-user-id')) {
     const userId = targetElement.getAttribute('data-user-id');
     const username = targetElement.getAttribute('data-username');
-    switchUser(userId, username);
+    const profilePicture = targetElement.getAttribute('data-profile-picture');
+    switchUser(userId, username, profilePicture);
   }
 });
 
-function switchUser(recipientId, recipientUsername) {
+function switchUser(recipientId, recipientUsername, profilePicture) {
   currentRecipientId = recipientId;
   document.getElementById('chatUsername').textContent = recipientUsername;
+
+  const profilePicElement = document.querySelector("#friendInfoContainer img");
+  profilePicElement.src = profilePicture || '/static/uploads/default_profile_pic.png';
 
   if (!messageStore[recipientId]) {
     fetchAndDisplayHistory(recipientId);
@@ -46,7 +50,8 @@ function fetchAndDisplayHistory(recipientId) {
         username: msg.sender_username,
         message: msg.content,
         isSender: msg.sender_id.toString() === currentUserId.toString(),
-        timestamp: msg.timestamp
+        timestamp: msg.timestamp,
+        profilePicture: msg.sender_profile_picture
       }));
       displayMessages(recipientId);
     });
@@ -66,7 +71,14 @@ function displayMessages(recipientId) {
 
   let messages = messageStore[recipientId] || [];
   messages.forEach(function(msg) {
-    appendMessage(msg.userId, msg.username, msg.message, msg.isSender, msg.timestamp);
+    appendMessage(
+      msg.userId,
+      msg.username,
+      msg.message,
+      msg.isSender,
+      msg.timestamp,
+      msg.profilePicture
+    );
   });
 
   scrollToBottom();
@@ -104,7 +116,8 @@ function sendMessage(message) {
     message,
     true,
     timestamp,
-    currentUsername
+    currentUsername,
+    currentUserProfilePicture
   );
 
   socket.emit('send_message', {
@@ -128,7 +141,8 @@ function storeAndAppendMessage(
   message,
   isSender,
   timestamp,
-  username
+  username,
+  profilePicture
 ) {
   if (!messageStore[recipientId]) {
     messageStore[recipientId] = [];
@@ -139,7 +153,8 @@ function storeAndAppendMessage(
     username: username,
     message: message,
     isSender: isSender,
-    timestamp: timestamp
+    timestamp: timestamp,
+    profilePicture: profilePicture
   });
 
   if (currentRecipientId && (senderId == currentRecipientId || recipientId == currentRecipientId)) {
@@ -148,7 +163,8 @@ function storeAndAppendMessage(
       username,
       message,
       isSender,
-      timestamp
+      timestamp,
+      profilePicture
     );
   }
 }
@@ -174,7 +190,8 @@ socket.on('receive_message', data => {
     data.message,
     data.sender_id === currentUserId,
     data.timestamp,
-    data.sender_username
+    data.sender_username,
+    data.sender_profile_picture
   );
 });
 
@@ -183,15 +200,22 @@ function appendMessage(
   username,
   message,
   isSender,
-  timestamp
+  timestamp,
+  profilePicture
 ) {
   let messageElement = document.createElement('div');
   messageElement.className = isSender ? 'chat-message-right pb-4' : 'chat-message-left pb-4';
 
   let formattedTimestamp = timestamp ? formatTimestamp(timestamp) : '';
+  let imageSrc = `/static/uploads/${profilePicture}`;
+
   let messageContent = `
     <div>
-      <!-- Placeholder for user image -->
+      <img src="${imageSrc}"
+           class="rounded-circle mr-1"
+           alt="{{ friend.username }}"
+           width="40"
+           height="40">
       <div class="text-muted small text-nowrap mt-2">${formattedTimestamp}</div>
     </div>
     <div class="flex-shrink-1 bg-light rounded py-2 px-3 ${isSender ? 'mr-3' : 'ml-3'}">

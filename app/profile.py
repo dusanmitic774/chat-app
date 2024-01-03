@@ -1,4 +1,5 @@
 import os
+import time
 
 from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
@@ -16,7 +17,6 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 @profile_blueprint.route("/update-profile", methods=["POST"])
 @login_required
 def update_profile():
-    # Process the text fields
     username = request.form.get("username")
     email = request.form.get("email")
     password = request.form.get("password")
@@ -32,14 +32,24 @@ def update_profile():
     if password:
         user.password_hash = generate_password_hash(password)
 
-    # Process the file upload
     if "profilePicture" in request.files:
         file = request.files["profilePicture"]
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+        if file and allowed_file(file.filename) and file.filename:
+            filename = secure_filename(
+                f"user_{current_user.id}_{int(time.time())}.{file.filename.rsplit('.', 1)[1].lower()}"
+            )
             file_path = os.path.join("static/uploads", filename)
+
             file.save(file_path)
-            user.profile_picture = file_path
+
+            if current_user.profile_picture:
+                old_file_path = os.path.join(
+                    "static/uploads", current_user.profile_picture
+                )
+                if os.path.isfile(old_file_path):
+                    os.remove(old_file_path)
+
+            user.profile_picture = filename
 
     db.session.commit()
     return jsonify({"message": "Profile updated successfully"})

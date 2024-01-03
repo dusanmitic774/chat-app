@@ -24,7 +24,7 @@ def chat():
     if not current_user.is_authenticated:
         return redirect(url_for("auth.login"))
 
-    friends = (
+    friends_query = (
         User.query.join(
             Friendship,
             or_(Friendship.receiver_id == User.id, Friendship.requester_id == User.id),
@@ -40,7 +40,20 @@ def chat():
         .all()
     )
 
-    return render_template("chat.html", user=current_user, friends=friends)
+    friends_data = [
+        {
+            "id": friend.id,
+            "username": friend.username,
+            "profile_picture": friend.profile_picture or "default_profile_pic.png",
+        }
+        for friend in friends_query
+    ]
+
+    return render_template(
+        "chat.html",
+        user=current_user,
+        friends=friends_data,
+    )
 
 
 @socketio.on("send_message", namespace="/chat")
@@ -91,6 +104,9 @@ def handle_send_message_event(data):
             data["timestamp"] = new_message.timestamp.replace(
                 tzinfo=timezone.utc
             ).isoformat()
+            data["sender_profile_picture"] = (
+                sender.profile_picture or "default_profile_pic.png"
+            )
 
             app_logger.info(
                 f"{data['sender_id']} has sent a message to {data['recipient_id']}: {data['message']}"
@@ -130,6 +146,9 @@ def get_messages():
         {
             "sender_id": msg.sender_id,
             "sender_username": msg.sender.username,
+            "sender_profile_picture": msg.sender.profile_picture
+            if msg.sender.profile_picture
+            else "default_profile_pic.png",
             "recipient_id": msg.recipient_id,
             "content": msg.content,
             "timestamp": msg.timestamp.replace(tzinfo=timezone.utc).isoformat(),
