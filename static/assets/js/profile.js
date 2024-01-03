@@ -33,27 +33,27 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('email').removeAttribute('readonly');
   });
 
+
   // Handle form submission
   userProfileForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    const username = document.getElementById('username').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const repeatPassword = document.getElementById('repeatPassword').value;
 
-    // Add validation for password and repeatPassword match here if required
+    // Create FormData object
+    const formData = new FormData();
+    formData.append('username', document.getElementById('username').value);
+    formData.append('email', document.getElementById('email').value);
+    formData.append('password', document.getElementById('password').value);
+    formData.append('profilePicture', document.getElementById('profilePicture').files[0]);
 
-    const data = { username, email, password };
     fetch('/update-profile', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      method: 'POST',
+      body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-      console.log(data.message);
-      // Additional handling (e.g., display a success message)
-    })
-    .catch(error => console.error('Error:', error));
+      .then(response => response.json())
+      .then(data => {
+        console.log(data.message);
+        // Additional handling (e.g., display a success message)
+      })
+      .catch(error => console.error('Error:', error));
   });
 });

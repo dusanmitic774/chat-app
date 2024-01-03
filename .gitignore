@@ -8,6 +8,7 @@ env/
 .idea/
 .vscode/
 logs/
+static/uploads/
 *.swp
 *~
 .DS_Store
