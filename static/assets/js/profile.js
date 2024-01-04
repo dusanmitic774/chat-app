@@ -38,6 +38,15 @@ document.addEventListener('DOMContentLoaded', function() {
   userProfileForm.addEventListener('submit', function(e) {
     e.preventDefault();
 
+    // Password validation
+    const password = document.getElementById('password').value;
+    const repeatPassword = document.getElementById('repeatPassword').value;
+
+    if (password !== repeatPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
     // Create FormData object
     const formData = new FormData();
     formData.append('username', document.getElementById('username').value);
