@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   socket.on('friend_request_accepted', function(data) {
     console.log("Friend request accepted by", data.receiver_username);
-    appendFriendToUI(data.receiver_id, data.receiver_username);
+    updateFriendsList()
   });
 
   socket.on('friend_removed', function(data) {
@@ -138,21 +138,35 @@ function displayNewRequest(data) {
   pendingRequestsContainer.insertAdjacentHTML('beforeend', newRequestHTML);
 }
 
-function appendFriendToUI(userId, username) {
-  const friendsListContainer = document.getElementById('friendsList');
-  const newFriendHTML = `
-    <a href="#" class="list-group-item list-group-item-action border-0 user" data-user-id="${userId}" data-username="${username}" onclick="setActiveFriend('${userId}', '${username}')">
-      <div class="d-flex align-items-start">
-        <img src="path_to_default_avatar" class="rounded-circle mr-1" alt="" width="40" height="40">
-        <div class="flex-grow-1 ml-3">
-          ${username}
-          <div class="small">
-            <span class="fas fa-circle chat-offline"></span> Offline
-          </div>
-        </div>
-      </div>
-    </a>`;
-  friendsListContainer.insertAdjacentHTML('beforeend', newFriendHTML);
+function updateFriendsList() {
+  fetch('/get-latest-friends')
+    .then(response => response.json())
+    .then(data => {
+      const friendsListContainer = document.getElementById('friendsList');
+      friendsListContainer.innerHTML = '';
+
+      data.friends.forEach(friend => {
+        const friendHTML = createFriendListItem(friend);
+        friendsListContainer.insertAdjacentHTML('afterbegin', friendHTML);
+      });
+    }).catch(error => {
+      console.error('Error updating friends list:', error);
+    });
+}
+
+function createFriendListItem(friend) {
+  const profileImageSrc = friend.profile_picture ? `/static/uploads/${friend.profile_picture}` : '/default_profile_pic.png';
+
+  return `
+        <a href="#" class="list-group-item list-group-item-action border-0 user" data-user-id="${friend.id}" data-username="${friend.username}" onclick="setActiveFriend('${friend.id}', '${friend.username}')">
+            <div class="d-flex align-items-start">
+                <img src="${profileImageSrc}" class="rounded-circle mr-1" alt="${friend.username}" width="40" height="40">
+                <div class="flex-grow-1 ml-3">
+                    ${friend.username}
+                    <div class="small"><span class="fas fa-circle chat-offline"></span> Offline</div>
+                </div>
+            </div>
+        </a>`;
 }
 
 function sendFriendRequestByUsernameOrEmail(identifier, modal) {
@@ -190,7 +204,7 @@ function updateFriendRequest(requestId, action) {
     credentials: 'same-origin'
   }).then(response => response.json())
     .then(data => {
-      location.reload(); // Reload the page to update the UI
+      location.reload();
     }).catch(error => {
       console.error(`Error updating friend request:`, error);
     });

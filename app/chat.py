@@ -19,28 +19,45 @@ def on_connect():
         join_room(str(current_user.id))
 
 
-@chat_bp.route("/chat")
-def chat():
-    if not current_user.is_authenticated:
-        return redirect(url_for("auth.login"))
+def fetch_sorted_friends(current_user_id):
+    # Subquery to get the last message's timestamp
+    last_messages_subquery = (
+        db.session.query(
+            Message.sender_id.label("sender_id"),
+            Message.recipient_id.label("recipient_id"),
+            db.func.max(Message.timestamp).label("max_timestamp"),
+        )
+        .filter(Message.sender_id == current_user_id)
+        .group_by(Message.sender_id, Message.recipient_id)
+        .subquery()
+    )
 
+    # Main query to fetch friends
     friends_query = (
         User.query.join(
             Friendship,
             or_(Friendship.receiver_id == User.id, Friendship.requester_id == User.id),
         )
-        .filter(
-            User.id != current_user.id,
+        .outerjoin(
+            last_messages_subquery,
             or_(
-                Friendship.receiver_id == current_user.id,
-                Friendship.requester_id == current_user.id,
+                last_messages_subquery.c.recipient_id == User.id,
+                last_messages_subquery.c.sender_id == User.id,
+            ),
+        )
+        .filter(
+            User.id != current_user_id,
+            or_(
+                Friendship.receiver_id == current_user_id,
+                Friendship.requester_id == current_user_id,
             ),
             Friendship.status == "accepted",
         )
+        .order_by(last_messages_subquery.c.max_timestamp.desc(), User.username)
         .all()
     )
 
-    friends_data = [
+    return [
         {
             "id": friend.id,
             "username": friend.username,
@@ -49,11 +66,25 @@ def chat():
         for friend in friends_query
     ]
 
-    return render_template(
-        "chat.html",
-        user=current_user,
-        friends=friends_data,
-    )
+
+@chat_bp.route("/chat")
+def chat():
+    if not current_user.is_authenticated:
+        return redirect(url_for("auth.login"))
+
+    friends_data = fetch_sorted_friends(current_user.id)
+
+    return render_template("chat.html", user=current_user, friends=friends_data)
+
+
+@chat_bp.route("/get-latest-friends")
+def get_latest_friends():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    friends_data = fetch_sorted_friends(current_user.id)
+
+    return jsonify(friends=friends_data)
 
 
 @socketio.on("send_message", namespace="/chat")

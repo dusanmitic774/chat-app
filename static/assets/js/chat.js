@@ -130,9 +130,23 @@ function sendMessage(message) {
       // removeMessage(messageId);
       appendErrorMessage("Failed to send");
     }
+
+    if (success) {
+      moveFriendToTop(currentRecipientId)
+    }
   });
 
   scrollToBottom()
+}
+
+function moveFriendToTop(friendId) {
+  const friendsListContainer = document.getElementById('friendsList');
+  const friendElement = friendsListContainer.querySelector(`[data-user-id="${friendId}"]`);
+  
+  if (friendElement) {
+    friendsListContainer.removeChild(friendElement);
+    friendsListContainer.insertAdjacentElement('afterbegin', friendElement);
+  }
 }
 
 function storeAndAppendMessage(
