@@ -94,13 +94,51 @@ document.getElementById('sendButton').addEventListener('click', function() {
   document.getElementById('messageInput').value = '';
 });
 
-document.getElementById('messageInput').addEventListener('keypress', function(e) {
+const messageInput = document.getElementById('messageInput');
+
+messageInput.addEventListener('keypress', function(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
     sendMessage(this.value);
     this.value = '';
   }
 });
+
+messageInput.addEventListener('input', () => {
+  if (currentRecipientId) {
+    console.log(`currentUserId: ${currentUserId}`)
+    console.log(`currentRecipientId: ${currentRecipientId}`)
+    socket.emit('typing', { sender_id: currentUserId, recipient_id: currentRecipientId });
+  }
+});
+
+socket.on('user_typing', (data) => {
+  console.log(`data: ${data}`)
+  if (data.sender_id !== currentUserId) {
+    showTypingIndicator(data.sender_id);
+  }
+});
+
+let typingTimeout;
+function showTypingIndicator(senderId) {
+  console.log("showTypingIndicator")
+  const typingIndicator = document.querySelector("#typingIndicator");
+  if (typingIndicator) {
+    typingIndicator.style.display = 'block';
+  }
+
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    hideTypingIndicator(senderId);
+  }, 3000);
+}
+
+function hideTypingIndicator(senderId) {
+  const typingIndicator = document.querySelector("#typingIndicator");
+  if (typingIndicator) {
+    typingIndicator.style.display = 'none';
+  }
+}
 
 function sendMessage(message) {
   if (!currentRecipientId) {
@@ -142,7 +180,7 @@ function sendMessage(message) {
 function moveFriendToTop(friendId) {
   const friendsListContainer = document.getElementById('friendsList');
   const friendElement = friendsListContainer.querySelector(`[data-user-id="${friendId}"]`);
-  
+
   if (friendElement) {
     friendsListContainer.removeChild(friendElement);
     friendsListContainer.insertAdjacentElement('afterbegin', friendElement);

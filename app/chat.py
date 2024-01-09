@@ -19,6 +19,11 @@ def on_connect():
         join_room(str(current_user.id))
 
 
+@socketio.on("typing", namespace="/chat")
+def on_typing(data):
+    emit("user_typing", data, room=str(data["recipient_id"]))
+
+
 def fetch_sorted_friends(current_user_id):
     # Subquery to get the last message's timestamp
     last_messages_subquery = (
