@@ -1,4 +1,4 @@
-from datetime import timezone
+from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user
@@ -12,11 +12,80 @@ from app.models import Friendship, Message, User
 
 chat_bp = Blueprint("chat", __name__)
 
+online_users = {}
+last_status_update = {}
+
+
+@socketio.on("update_status", namespace="/chat")
+def on_update_status(data):
+    user_id = data.get("userId")
+    if user_id:
+        last_status_update[user_id] = datetime.utcnow()
+        update_friends_about_status(user_id, True)
+
+
+def check_for_inactive_users():
+    now = datetime.utcnow()
+    for user_id, last_update in last_status_update.items():
+        if now - last_update > timedelta(minutes=5):
+            update_friends_about_status(user_id, False)
+
+
+@chat_bp.route("/get-friend-statuses")
+def get_friend_statuses():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    friends_ids = get_friends_ids(current_user.id)
+    friends_status = {
+        friend_id: online_users.get(friend_id, False) for friend_id in friends_ids
+    }
+
+    return jsonify(friends_status=friends_status)
+
 
 @socketio.on("connect", namespace="/chat")
 def on_connect():
     if current_user.is_authenticated:
+        online_users[current_user.id] = True
+        update_friends_about_status(current_user.id, True)
         join_room(str(current_user.id))
+
+
+@socketio.on("disconnect", namespace="/chat")
+def on_disconnect():
+    if current_user.is_authenticated:
+        if current_user.id in online_users:
+            del online_users[current_user.id]
+        update_friends_about_status(current_user.id, False)
+
+
+def update_friends_about_status(user_id, status):
+    friends_ids = get_friends_ids(user_id)
+    for friend_id in friends_ids:
+        app_logger.info(f"User {user_id} status {status} -> notifying {friend_id}")
+        emit(
+            "friend_online_status",
+            {"friend_id": user_id, "is_online": status},
+            room=str(friend_id),
+            namespace="/chat",
+        )
+
+
+def get_friends_ids(user_id):
+    friends = Friendship.query.filter(
+        db.or_(Friendship.requester_id == user_id, Friendship.receiver_id == user_id),
+        Friendship.status == "accepted",
+    ).all()
+
+    friend_ids = []
+    for friendship in friends:
+        if friendship.requester_id == user_id:
+            friend_ids.append(friendship.receiver_id)
+        else:
+            friend_ids.append(friendship.requester_id)
+
+    return friend_ids
 
 
 @socketio.on("typing", namespace="/chat")
