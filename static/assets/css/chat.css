@@ -154,3 +154,22 @@ body{
         align-self: flex-end;
     }
 }
+
+/* Notifications for friend requests */
+.icon-container {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-count {
+    position: absolute;
+    top: -10px; /* Adjust as needed */
+    right: -10px; /* Adjust as needed */
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 5px;
+    font-size: 0.8rem;
+    display: none; /* Hide initially */
+}
+

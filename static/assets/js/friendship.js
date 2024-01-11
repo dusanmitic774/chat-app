@@ -54,11 +54,13 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("New friend request received");
     pendingFriendRequests.push(data);
     displayNewRequest(data);
+    updateFriendRequestCount();
   });
 
   socket.on('friend_request_accepted', function(data) {
     console.log("Friend request accepted by", data.receiver_username);
     updateFriendsList()
+    updateFriendRequestCount();
   });
 
   socket.on('friend_removed', function(data) {
@@ -104,6 +106,7 @@ function fetchPendingFriendRequests() {
     .then(data => {
       pendingFriendRequests = data;
       displayAllPendingRequests();
+      updateFriendRequestCount();
     }).catch(error => {
       console.error('Error fetching pending friend requests:', error);
       // Optionally handle error on UI
@@ -136,6 +139,12 @@ function displayNewRequest(data) {
       </div>
     </a>`;
   pendingRequestsContainer.insertAdjacentHTML('beforeend', newRequestHTML);
+}
+
+function updateFriendRequestCount() {
+  const countElement = document.getElementById('friendRequestCount');
+  countElement.textContent = pendingFriendRequests.length;
+  countElement.style.display = pendingFriendRequests.length > 0 ? 'inline' : 'none';
 }
 
 function updateFriendsList() {
@@ -208,6 +217,11 @@ function updateFriendRequest(requestId, action) {
     credentials: 'same-origin'
   }).then(response => response.json())
     .then(data => {
+      const index = pendingFriendRequests.findIndex(req => req.friend_request_id === requestId);
+      if (index > -1) {
+        pendingFriendRequests.splice(index, 1);
+        updateFriendRequestCount();
+      }
       location.reload();
     }).catch(error => {
       console.error(`Error updating friend request:`, error);

@@ -16,16 +16,19 @@
                         <!-- Icons -->
                         <div class="px-4 d-none d-md-block mt-2">
                           <div class="icons-container d-flex align-items-left">
-                            <button class="btn btn-info"
+                            <button class="btn btn-info mr-3"
                                     id="openAddFriendModal"
                                     data-bs-toggle="modal"
                                     data-bs-target="#addFriendModal">
                                 <i class="fa-solid fa-user-plus"></i>
                             </button>
-                            <button class="btn btn-info" id="toggleRequests">
-                                <i class="fa-solid fa-user-group"></i>
+                            <button class="btn btn-info mr-3" id="toggleRequests">
+                                <div class="icon-container">
+                                    <i class="fa-solid fa-user-group"></i>
+                                    <span id="friendRequestCount" class="notification-count">0</span>
+                                </div>
                             </button>
-                            <button class="btn btn-info" id="toggleChat" style="display: none;">
+                            <button class="btn btn-info mr-3" id="toggleChat" style="display: none;">
                               <i class="fa-solid fa-chevron-left"></i>
                             </button>
                             <button class="btn btn-info" id="openUserProfile">
