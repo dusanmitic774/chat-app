@@ -196,6 +196,10 @@ function hideTypingIndicator(senderId) {
 }
 
 function sendMessage(message) {
+  if (!message.trim()) {
+    return;
+  }
+
   if (!currentRecipientId) {
     alert("Please select a recipient.");
     return;
