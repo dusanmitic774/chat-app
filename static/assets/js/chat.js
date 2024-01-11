@@ -108,6 +108,51 @@ function displayMessages(recipientId) {
   scrollToBottom();
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+  // Fetch friend statuses on page load
+  fetch('/get-friend-statuses').then(response => {
+    if (response.ok) {
+      return response.json();
+    } else {
+      throw new Error('Could not fetch friend statuses');
+    }
+  }).then(data => {
+    Object.entries(data.friends_status).forEach(([friendId, isOnline]) => {
+      updateFriendStatus(friendId, isOnline);
+    });
+  }).catch(error => console.error(error));
+
+  // Update current user's online status on page load
+  fetch('/update-online-status')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        console.log('Online status updated successfully.');
+      }
+    })
+    .catch(error => console.error('Error updating online status:', error));
+});
+
+// Update friend status upon receiving a broadcast
+socket.on('friend_online_status', function(data) {
+  updateFriendStatus(data.friend_id, data.is_online);
+});
+
+// Function to update a friend's online status in the UI
+function updateFriendStatus(friendId, isOnline) {
+  const friendElement = document.querySelector(`[data-user-id="${friendId}"]`);
+  if (friendElement) {
+    let statusIndicator = friendElement.querySelector('.fas.fa-circle');
+    if (!statusIndicator) {
+      statusIndicator = document.createElement('span');
+      statusIndicator.className = 'fas fa-circle';
+      friendElement.appendChild(statusIndicator);
+    }
+    statusIndicator.classList.toggle('chat-online', isOnline);
+    statusIndicator.classList.toggle('chat-offline', !isOnline);
+  }
+}
+
 socket.on('connect', function() {
   console.log('Connected to Socket.IO server.');
 
@@ -118,54 +163,8 @@ socket.on('connect', function() {
       throw new Error('Could not fetch friend statuses');
     }
   }).then(data => {
-    for (const [friendId, isOnline] of Object.entries(data.friends_status)) {
-      updateFriendStatus(friendId, isOnline);
-    }
+    console.log(data)
   }).catch(error => console.error(error));
-});
-
-// Emit online status periodically
-setInterval(() => {
-  socket.emit('update_status', { userId: currentUserId });
-}, 5000);  // Every 5 seconds, for example
-
-// Update friend status upon receiving a broadcast
-socket.on('friend_status_update', function(data) {
-  updateFriendStatus(data.friend_id, data.is_online);
-});
-
-function updateFriendStatus(friendId, isOnline) {
-  const friendElement = document.querySelector(`[data-user-id="${friendId}"]`);
-  if (friendElement) {
-    // Update the friend's status indicator
-  }
-}
-
-socket.on('friend_online_status', function(data) {
-  const friendElement = document.querySelector(`[data-user-id="${data.friend_id}"]`);
-  if (friendElement) {
-    let statusContainer = friendElement.querySelector('.small');
-
-    // If the statusContainer does not exist, create it
-    if (!statusContainer) {
-      statusContainer = document.createElement('div');
-      statusContainer.className = 'small';
-      friendElement.appendChild(statusContainer);
-    }
-
-    // Clear the existing content
-    statusContainer.innerHTML = '';
-
-    // Create and add the circle span element
-    const statusCircle = document.createElement('span');
-    statusCircle.className = 'fas fa-circle';
-    statusCircle.classList.add(data.is_online ? 'chat-online' : 'chat-offline');
-    statusContainer.appendChild(statusCircle);
-
-    // Create and add the text node
-    const statusText = document.createTextNode(` ${data.is_online ? 'Online' : 'Offline'}`);
-    statusContainer.appendChild(statusText);
-  }
 });
 
 document.getElementById('sendButton').addEventListener('click', function() {
