@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from redis import Redis
 
 from app.auth import auth as auth_blueprint
 from app.config import Config, TestingConfig
@@ -20,6 +21,8 @@ def create_app(config_name="default"):
         app.config.from_object(TestingConfig)
     else:
         app.config.from_object(Config)
+
+    app.redis = Redis(host="redis", port=6379, db=0, decode_responses=True)
 
     socketio.init_app(app)
 
