@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, jsonify, redirect, render_template, request, url_for
+from flask import current_app
 from flask_login import current_user
 from flask_socketio import emit, join_room
 from sqlalchemy import and_, or_
@@ -136,6 +137,10 @@ def fetch_sorted_friends(current_user_id):
             "id": friend.id,
             "username": friend.username,
             "profile_picture": friend.profile_picture or "default_profile_pic.png",
+            "unread_count": current_app.redis.get(
+                f"unread_{current_user_id}_{friend.id}"
+            )
+            or 0,
         }
         for friend in friends_query
     ]
@@ -213,6 +218,11 @@ def handle_send_message_event(data):
                 sender.profile_picture or "default_profile_pic.png"
             )
 
+            # Increment unread message count in Redis
+            redis_key = f"unread_{data['recipient_id']}_{data['sender_id']}"
+            unread_count = current_app.redis.incr(redis_key)
+            data["unread_count"] = unread_count
+
             app_logger.info(
                 f"{data['sender_id']} has sent a message to {data['recipient_id']}: {data['message']}"
             )
@@ -224,6 +234,17 @@ def handle_send_message_event(data):
 
     app_logger.info("Unauthorized message sending!")
     return False
+
+
+@chat_bp.route("/reset-unread/<int:friend_id>")
+def reset_unread_count(friend_id):
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    redis_key = f"unread_{current_user.id}_{friend_id}"
+    current_app.redis.set(redis_key, 0)
+
+    return jsonify({"success": True})
 
 
 @chat_bp.route("/get-messages")

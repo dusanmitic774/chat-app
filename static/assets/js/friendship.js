@@ -165,6 +165,7 @@ function updateFriendsList() {
 
 function createFriendListItem(friend) {
   const profileImageSrc = friend.profile_picture ? `/static/uploads/${friend.profile_picture}` : '/default_profile_pic.png';
+  const unreadCountDisplay = friend.unread_count > 0 ? `<span class="unread-count">${friend.unread_count}</span>` : '';
 
   return `
     <a href="#" class="list-group-item list-group-item-action border-0 user" 
@@ -175,7 +176,7 @@ function createFriendListItem(friend) {
         <div class="d-flex align-items-start">
             <img src="${profileImageSrc}" class="rounded-circle mr-1" alt="${friend.username}" width="40" height="40">
             <div class="flex-grow-1 ml-3">
-                ${friend.username}
+                ${friend.username} ${unreadCountDisplay}
                 <div class="small"><span class="fas fa-circle chat-offline"></span> Offline</div>
             </div>
         </div>

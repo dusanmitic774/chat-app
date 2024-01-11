@@ -39,6 +39,30 @@ function switchUser(recipientId, recipientUsername, profilePicture) {
   } else {
     displayMessages(recipientId);
   }
+
+  fetch(`/reset-unread/${recipientId}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        updateUnreadCount(recipientId, 0);
+      }
+    });
+}
+
+function updateUnreadCount(userId, count) {
+  const friendElement = document.querySelector(`[data-user-id="${userId}"]`);
+  if (friendElement) {
+    let unreadIndicator = friendElement.querySelector('.unread-count');
+    if (!unreadIndicator && count > 0) {
+      unreadIndicator = document.createElement('span');
+      unreadIndicator.className = 'unread-count';
+      friendElement.appendChild(unreadIndicator);
+    }
+    if (unreadIndicator) {
+      unreadIndicator.textContent = count;
+      unreadIndicator.style.display = count > 0 ? 'inline' : 'none';
+    }
+  }
 }
 
 function fetchAndDisplayHistory(recipientId) {
@@ -162,14 +186,11 @@ messageInput.addEventListener('keypress', function(e) {
 
 messageInput.addEventListener('input', () => {
   if (currentRecipientId) {
-    console.log(`currentUserId: ${currentUserId}`)
-    console.log(`currentRecipientId: ${currentRecipientId}`)
     socket.emit('typing', { sender_id: currentUserId, recipient_id: currentRecipientId });
   }
 });
 
 socket.on('user_typing', (data) => {
-  console.log(`data: ${data}`)
   if (data.sender_id !== currentUserId) {
     showTypingIndicator(data.sender_id);
   }
@@ -304,6 +325,10 @@ socket.on('receive_message', data => {
     data.sender_username,
     data.sender_profile_picture
   );
+
+  if (data.sender_id !== currentUserId) {
+    updateUnreadCount(data.sender_id, data.unread_count);
+  }
 });
 
 function appendMessage(

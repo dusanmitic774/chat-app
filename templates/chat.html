@@ -46,13 +46,16 @@
                                    data-profile-picture="{{ url_for('static' ,filename='uploads/' + friend.profile_picture) }}"
                                    onclick="setActiveFriend('{{ friend.id }}')">
                                     <div class="d-flex align-items-start">
-                                    <img src="{{ url_for('static' ,filename='uploads/' + friend.profile_picture) if friend.profile_picture else url_for('static', filename='uploads/default_profile_pic.png') }}"
-                                         class="rounded-circle mr-1"
-                                         alt="{{ friend.username }}"
-                                         width="40"
-                                         height="40">
+                                        <img src="{{ url_for('static' ,filename='uploads/' + friend.profile_picture) if friend.profile_picture else url_for('static', filename='uploads/default_profile_pic.png') }}"
+                                             class="rounded-circle mr-1"
+                                             alt="{{ friend.username }}"
+                                             width="40"
+                                             height="40">
                                         <div class="flex-grow-1 ml-3">
                                             {{ friend.username }}
+                                            {% if friend.unread_count | int > 0 %}
+                                                <span class="unread-count">{{ friend.unread_count }}</span>
+                                            {% endif %}
                                             <div class="small">
                                                 <span class="fas fa-circle {{ 'chat-online' if friend.is_online else 'chat-offline' }}"></span> {{ 'Online' if friend.is_online else 'Offline' }}
                                             </div>
