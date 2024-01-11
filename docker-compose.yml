@@ -23,7 +23,6 @@ services:
       - ./logs:/var/log
     depends_on:
       - chat-app-db
-
   chat-app-db:
     container_name: postgres-chat-app
     image: postgres:13
@@ -33,5 +32,13 @@ services:
       - postgres_chat_app_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+  redis:
+    container_name: redis-chat-app
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 volumes:
   postgres_chat_app_data:
+  redis_data:
