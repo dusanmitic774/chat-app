@@ -345,7 +345,7 @@ function appendMessage(
   let imageSrc = `/static/uploads/${profilePicture}`;
 
   let messageContent = `
-    <div>
+    <div class="${isSender ? 'sent-message' : ''}">
       <img src="${imageSrc}"
            class="rounded-circle mr-1"
            alt="{{ friend.username }}"
