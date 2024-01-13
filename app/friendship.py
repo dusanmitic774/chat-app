@@ -62,6 +62,9 @@ def send_friend_request():
             "requester_id": current_user.id,
             "requester_username": current_user.username,
             "friend_request_id": friend_request.id,
+            "requester_profile_picture": current_user.profile_picture
+            if current_user.profile_picture
+            else "default_profile_pic.png",
         },
         room=str(receiver.id),
         namespace="/chat",
