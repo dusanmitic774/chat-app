@@ -1,12 +1,11 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, redirect, render_template, url_for
 from flask_login import current_user
-
-from .models import User
 
 main = Blueprint("main", __name__)
 
 
 @main.route("/")
 def index():
-    users = User.query.all()
-    return render_template("index.html", users=users, current_user=current_user)
+    if current_user.is_authenticated:
+        return redirect(url_for("chat.chat"))
+    return render_template("login.html")
