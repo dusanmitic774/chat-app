@@ -316,17 +316,6 @@ socket.on('receive_message', data => {
     data.sender_profile_picture
   );
 
-  if (messageRecipientId === currentRecipientId) {
-    appendMessage(
-      data.sender_id,
-      data.sender_username,
-      data.message,
-      data.sender_id === currentUserId,
-      data.timestamp,
-      data.sender_profile_picture
-    );
-  }
-
   if (data.sender_id !== currentUserId) {
     updateUnreadCount(data.sender_id, data.unread_count);
   }
