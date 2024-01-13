@@ -129,7 +129,7 @@ function displayNewRequest(data) {
           ${data.requester_username}
         </div>
         <div>
-          <button class="btn btn-success accept-request" data-request-id="${data.friend_request_id}">
+          <button class="btn btn-info accept-request" data-request-id="${data.friend_request_id}">
             <i class="fa-regular fa-circle-check"></i>
           </button>
           <button class="btn btn-danger decline-request" data-request-id="${data.friend_request_id}">
