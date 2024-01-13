@@ -23,7 +23,7 @@ document.getElementById('friendsList').addEventListener('click', function(event)
     const userId = targetElement.getAttribute('data-user-id');
     const username = targetElement.getAttribute('data-username');
     const profilePicture = targetElement.getAttribute('data-profile-picture');
-    switchUser(userId, username, profilePicture);
+    switchUser(parseInt(userId), username, profilePicture);
   }
 });
 
@@ -307,23 +307,29 @@ function appendErrorMessage(errorMessage) {
   document.getElementById('chatWindow').appendChild(errorElement);
 }
 
-// function removeMessage(messageId) {
-//   let messageElement = document.getElementById(messageId);
-//   if (messageElement) {
-//     messageElement.remove();
-//   }
-// }
-
 socket.on('receive_message', data => {
+  const messageRecipientId = data.sender_id === currentUserId ? data.recipient_id : data.sender_id;
+
   storeAndAppendMessage(
     data.sender_id,
-    data.recipient_id,
+    messageRecipientId,
     data.message,
     data.sender_id === currentUserId,
     data.timestamp,
     data.sender_username,
     data.sender_profile_picture
   );
+
+  if (messageRecipientId === currentRecipientId) {
+    appendMessage(
+      data.sender_id,
+      data.sender_username,
+      data.message,
+      data.sender_id === currentUserId,
+      data.timestamp,
+      data.sender_profile_picture
+    );
+  }
 
   if (data.sender_id !== currentUserId) {
     updateUnreadCount(data.sender_id, data.unread_count);
