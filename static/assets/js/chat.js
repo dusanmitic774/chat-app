@@ -133,23 +133,19 @@ document.addEventListener('DOMContentLoaded', function() {
     .catch(error => console.error('Error updating online status:', error));
 });
 
-// Update friend status upon receiving a broadcast
 socket.on('friend_online_status', function(data) {
   updateFriendStatus(data.friend_id, data.is_online);
 });
 
-// Function to update a friend's online status in the UI
 function updateFriendStatus(friendId, isOnline) {
   const friendElement = document.querySelector(`[data-user-id="${friendId}"]`);
   if (friendElement) {
-    let statusIndicator = friendElement.querySelector('.fas.fa-circle');
-    if (!statusIndicator) {
-      statusIndicator = document.createElement('span');
-      statusIndicator.className = 'fas fa-circle';
-      friendElement.appendChild(statusIndicator);
+    let statusText = friendElement.querySelector('.small');
+    if (isOnline) {
+      statusText.innerHTML = '<span class="fas fa-circle text-info"></span> Online';
+    } else {
+      statusText.innerHTML = '<span class="fas fa-circle chat-offline"></span> Offline';
     }
-    statusIndicator.classList.toggle('chat-online', isOnline);
-    statusIndicator.classList.toggle('chat-offline', !isOnline);
   }
 }
 
