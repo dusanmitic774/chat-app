@@ -359,7 +359,7 @@ function appendMessage(
            height="40">
       <div class="text-muted small text-nowrap mt-2">${formattedTimestamp}</div>
     </div>
-    <div class="flex-shrink-1 bg-light rounded py-2 px-3 ${isSender ? 'mr-3' : 'ml-3'}">
+    <div class="flex-shrink-1 bg-light rounded py-2 px-3 ${isSender ? 'mr-3 sent-message-container' : 'ml-3'}">
       <div class="font-weight-bold mb-1">${isSender ? 'You' : username}</div>
       ${escapeHTML(message)}
     </div>

@@ -187,3 +187,7 @@ body{
     top: 10px;
     right: 10px;
 }
+
+.sent-message-container {
+  background-color: #e9f9fc !important;
+}
