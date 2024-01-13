@@ -165,27 +165,35 @@ body{
 }
 
 .notification-count {
+    background-color: #E4606D !important;
     position: absolute;
-    top: -10px; /* Adjust as needed */
-    right: -10px; /* Adjust as needed */
+    top: -15px;
+    right: -20px;
     background-color: red;
     color: white;
     border-radius: 50%;
+    width: 20px; /* Equal width and height for a perfect circle */
+    height: 20px;
     padding: 2px 5px;
-    font-size: 0.8rem;
-    display: none; /* Hide initially */
+    font-size: 0.7rem;
+    display: none;
 }
 
 /* Messages notifications */
 .unread-count {
-    background-color: red;
+    background-color: #E4606D;
     color: white;
     border-radius: 50%;
+    width: 20px; /* Equal width and height for a perfect circle */
+    height: 20px;
     padding: 2px 5px;
     font-size: 0.8rem;
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 30%;
+    right: 0;
+    display: flex;
+    justify-content: center; /* Center text horizontally */
+    align-items: center; /* Center text vertically */
 }
 
 .sent-message-container {

@@ -60,7 +60,7 @@ function updateUnreadCount(userId, count) {
     }
     if (unreadIndicator) {
       unreadIndicator.textContent = count;
-      unreadIndicator.style.display = count > 0 ? 'inline' : 'none';
+      unreadIndicator.style.display = count > 0 ? '' : 'none';
     }
   }
 }
