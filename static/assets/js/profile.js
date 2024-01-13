@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return response.json();
       })
       .then(data => {
-        console.log(data.message);
+        location.reload()
         // Additional handling (e.g., display a success message)
       })
       .catch(error => {
