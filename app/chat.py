@@ -1,10 +1,17 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timezone
 
-from flask import Blueprint, jsonify, redirect, render_template, request, url_for
-from flask import current_app
+from flask import (
+    Blueprint,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+    current_app,
+)
 from flask_login import current_user
 from flask_socketio import emit, join_room
-from sqlalchemy import and_, or_
+from sqlalchemy import case, and_, or_
 
 from app import socketio
 from app.database import db
@@ -92,12 +99,20 @@ def fetch_sorted_friends(current_user_id):
     # Subquery to get the last message's timestamp
     last_messages_subquery = (
         db.session.query(
-            Message.sender_id.label("sender_id"),
-            Message.recipient_id.label("recipient_id"),
+            case(
+                (Message.sender_id == current_user_id, Message.recipient_id),
+                (Message.recipient_id == current_user_id, Message.sender_id),
+                else_=None,
+            ).label("friend_id"),
             db.func.max(Message.timestamp).label("max_timestamp"),
         )
-        .filter(Message.sender_id == current_user_id)
-        .group_by(Message.sender_id, Message.recipient_id)
+        .filter(
+            db.or_(
+                Message.sender_id == current_user_id,
+                Message.recipient_id == current_user_id,
+            )
+        )
+        .group_by("friend_id")
         .subquery()
     )
 
@@ -109,10 +124,7 @@ def fetch_sorted_friends(current_user_id):
         )
         .outerjoin(
             last_messages_subquery,
-            or_(
-                last_messages_subquery.c.recipient_id == User.id,
-                last_messages_subquery.c.sender_id == User.id,
-            ),
+            last_messages_subquery.c.friend_id == User.id,
         )
         .filter(
             User.id != current_user_id,
@@ -244,6 +256,8 @@ def reset_unread_count(friend_id):
 @chat_bp.route("/get-messages")
 def get_messages():
     recipient_id = request.args.get("recipient_id")
+    offset = request.args.get("offset", default=0, type=int)
+    limit = 20
     if not current_user.is_authenticated or not recipient_id:
         return jsonify({"error": "Unauthorized"}), 401
 
@@ -258,7 +272,9 @@ def get_messages():
                 & (Message.recipient_id == current_user.id)
             )
         )
-        .order_by(Message.timestamp)
+        .order_by(Message.timestamp.desc())
+        .offset(offset)
+        .limit(limit)
         .all()
     )
 
@@ -273,7 +289,7 @@ def get_messages():
             "content": msg.content,
             "timestamp": msg.timestamp.replace(tzinfo=timezone.utc).isoformat(),
         }
-        for msg in messages
+        for msg in reversed(messages)
     ]
 
     return jsonify({"messages": messages_data})

@@ -10,6 +10,8 @@ let socket = io.connect(
 
 let currentRecipientId = null;
 const messageStore = {};
+let loadingMessages = false;
+let noMoreMessages = false;
 
 document.getElementById('friendsList').addEventListener('click', function(event) {
   let targetElement = event.target;
@@ -29,22 +31,42 @@ document.getElementById('friendsList').addEventListener('click', function(event)
 
 function switchUser(recipientId, recipientUsername, profilePicture) {
   currentRecipientId = recipientId;
-  document.getElementById('chatUsername').textContent = recipientUsername;
+  noMoreMessages = false;
+  loadingMessages = false;
 
+  document.getElementById('chatUsername').textContent = recipientUsername;
   const profilePicElement = document.querySelector("#friendInfoContainer img");
   profilePicElement.src = profilePicture || '/static/uploads/default_profile_pic.png';
 
   if (!messageStore[recipientId]) {
-    fetchAndDisplayHistory(recipientId);
+    fetchInitialMessages(recipientId);
   } else {
     displayMessages(recipientId);
   }
 
-  fetch(`/reset-unread/${recipientId}`)
+  fetch(`/reset-unread/${recipientId}`).then(response => response.json()).then(data => {
+    if (data.success) {
+      updateUnreadCount(recipientId, 0);
+    }
+  });
+}
+
+function fetchInitialMessages(recipientId, limit = 20) {
+  fetch(`/get-messages?recipient_id=${recipientId}&offset=0&limit=${limit}`)
     .then(response => response.json())
     .then(data => {
-      if (data.success) {
-        updateUnreadCount(recipientId, 0);
+      if (data.messages.length > 0) {
+        const formattedMessages = data.messages.map(msg => ({
+          userId: msg.sender_id.toString(),
+          username: msg.sender_username,
+          message: msg.content,
+          isSender: msg.sender_id.toString() === currentUserId.toString(),
+          timestamp: msg.timestamp,
+          profilePicture: msg.sender_profile_picture
+        }));
+
+        messageStore[recipientId] = formattedMessages;
+        displayMessages(recipientId);
       }
     });
 }
@@ -65,11 +87,36 @@ function updateUnreadCount(userId, count) {
   }
 }
 
-function fetchAndDisplayHistory(recipientId) {
-  fetch(`/get-messages?recipient_id=${recipientId}`)
+function displayLoadingIndicator(show) {
+  const loadingText = document.getElementById('loadingText');
+  if (show) {
+    loadingText.style.display = 'block';
+  } else {
+    loadingText.style.display = 'none';
+  }
+}
+
+document.querySelector('.chat-messages').addEventListener('scroll', function() {
+  if (this.scrollTop === 0 && !loadingMessages && !noMoreMessages) {
+    loadingMessages = true;
+    displayLoadingIndicator(true);
+    const offset = messageStore[currentRecipientId] ? messageStore[currentRecipientId].length : 0;
+    fetchAndDisplayHistory(currentRecipientId, offset);
+  }
+});
+
+function fetchAndDisplayHistory(recipientId, offset = 0, limit = 20) {
+  fetch(`/get-messages?recipient_id=${recipientId}&offset=${offset}&limit=${limit}`)
     .then(response => response.json())
     .then(data => {
-      messageStore[recipientId] = data.messages.map(msg => ({
+      if (data.messages.length === 0) {
+        noMoreMessages = true;
+        displayLoadingIndicator(false);
+        loadingMessages = false;
+        return;
+      }
+
+      const formattedMessages = data.messages.map(msg => ({
         userId: msg.sender_id.toString(),
         username: msg.sender_username,
         message: msg.content,
@@ -77,8 +124,47 @@ function fetchAndDisplayHistory(recipientId) {
         timestamp: msg.timestamp,
         profilePicture: msg.sender_profile_picture
       }));
-      displayMessages(recipientId);
+
+      messageStore[recipientId] = [...(messageStore[recipientId] || []), ...formattedMessages];
+      prependMessages(formattedMessages);
+      loadingMessages = false;
+      displayLoadingIndicator(false);
     });
+}
+
+function prependMessages(messages) {
+  const chatMessages = document.querySelector(".chat-messages");
+  const oldScrollHeight = chatMessages.scrollHeight;
+
+  messages.reverse().forEach(msg => {
+    const messageElement = createMessageElement(msg);
+    chatMessages.insertBefore(messageElement, chatMessages.firstChild);
+  });
+
+  const newScrollHeight = chatMessages.scrollHeight;
+  chatMessages.scrollTop = newScrollHeight - oldScrollHeight;
+}
+
+function createMessageElement(msg) {
+  let messageElement = document.createElement('div');
+  messageElement.className = msg.isSender ? 'chat-message-right pb-4' : 'chat-message-left pb-4';
+
+  let formattedTimestamp = formatTimestamp(msg.timestamp);
+  let imageSrc = `/static/uploads/${msg.profilePicture}`;
+
+  let messageContent = `
+    <div class="${msg.isSender ? 'sent-message' : ''}">
+      <img src="${imageSrc}" class="rounded-circle mr-1" alt="${msg.username}" width="40" height="40">
+      <div class="text-muted small text-nowrap mt-2">${formattedTimestamp}</div>
+    </div>
+    <div class="flex-shrink-1 bg-light rounded py-2 px-3 ${msg.isSender ? 'mr-3 sent-message-container' : 'ml-3'}">
+      <div class="font-weight-bold mb-1">${msg.isSender ? 'You' : msg.username}</div>
+      ${escapeHTML(msg.message)}
+    </div>
+  `;
+
+  messageElement.innerHTML = messageContent;
+  return messageElement;
 }
 
 function escapeHTML(html) {
@@ -88,21 +174,14 @@ function escapeHTML(html) {
   return p.innerHTML;
 }
 
-
 function displayMessages(recipientId) {
-  var chatMessages = document.querySelector(".chat-messages");
-  chatMessages.textContent = "";
+  const chatMessages = document.querySelector(".chat-messages");
+  chatMessages.innerHTML = '';
 
-  let messages = messageStore[recipientId] || [];
-  messages.forEach(function(msg) {
-    appendMessage(
-      msg.userId,
-      msg.username,
-      msg.message,
-      msg.isSender,
-      msg.timestamp,
-      msg.profilePicture
-    );
+  const messages = messageStore[recipientId] || [];
+  messages.forEach(msg => {
+    const messageElement = createMessageElement(msg);
+    chatMessages.appendChild(messageElement);
   });
 
   scrollToBottom();
@@ -318,6 +397,11 @@ socket.on('receive_message', data => {
 
   if (data.sender_id !== currentUserId) {
     updateUnreadCount(data.sender_id, data.unread_count);
+
+    if (data.sender_id !== currentRecipientId) {
+      console.log("Move to the top")
+      moveFriendToTop(data.sender_id);
+    }
   }
 });
 
