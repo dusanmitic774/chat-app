@@ -36,7 +36,7 @@ def signup():
         db.session.commit()
 
         flash("Signup successful!")
-        return redirect(url_for("main.index"))
+        return redirect(url_for("chat.chat"))
 
     return render_template("signup.html")
 
@@ -59,6 +59,6 @@ def login():
         session.permanent = True
         flash("Login successful!")
 
-        return redirect(url_for("main.index"))
+        return redirect(url_for("chat.chat"))
 
     return render_template("login.html")
