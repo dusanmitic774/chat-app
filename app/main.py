@@ -8,4 +8,4 @@ main = Blueprint("main", __name__)
 def index():
     if current_user.is_authenticated:
         return redirect(url_for("chat.chat"))
-    return render_template("login.html")
+    return render_template("auth.html")

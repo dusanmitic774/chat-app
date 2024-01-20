@@ -38,7 +38,7 @@ def signup():
         flash("Signup successful!")
         return redirect(url_for("chat.chat"))
 
-    return render_template("signup.html")
+    return render_template("auth.html")
 
 
 @auth.route("/login", methods=["GET", "POST"])
@@ -61,4 +61,4 @@ def login():
 
         return redirect(url_for("chat.chat"))
 
-    return render_template("login.html")
+    return render_template("auth.html")

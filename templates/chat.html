@@ -1,13 +1,8 @@
 {% extends "base.html" %}
 {% block title %}Chat Application{% endblock %}
-{% block css %}
-    <link rel="stylesheet"
-          href="{{ url_for('static' ,filename='assets/css/chat.css') }}">
-{% endblock %}
 {% block content %}
-    <main class="content">
+    <main class="content chat-container">
         <div class="container p-0">
-            <h1 class="h3 mb-3">Messages</h1>
             <div class="card">
                 <div class="row g-0">
                     <div class="col-12 col-lg-5 col-xl-3 border-right">
@@ -116,8 +111,10 @@
                               <img src="{{ url_for('static' ,filename='uploads/' + user.profile_picture) if user.profile_picture else url_for('static', filename='uploads/default_profile_pic.png') }}" class="profile-picture img-fluid rounded-circle" alt="User Profile Picture">
                             </div>
                             <div class="col-md-8">
-                              <h3>User Profile</h3>
-                              <button onclick="location.href='{{ url_for('auth.logout') }}'" class="btn btn-danger btn-ms">Logout</button>
+                              <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h3>User Profile</h3>
+                                <button onclick="location.href='{{ url_for('auth.logout') }}'" class="btn btn-danger btn-ms">Logout</button>
+                              </div>
                               <form id="userProfileForm">
                                 <div class="mb-3">
                                   <label for="username" class="form-label">Username</label>

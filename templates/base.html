@@ -7,19 +7,12 @@
           crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"
         rel="stylesheet">
+    <link rel="stylesheet"
+          href="{{ url_for('static' ,filename='assets/css/chat.css') }}">
   {% block css %}{% endblock %}
 </head>
 
 <body>
-  <h1>Welcome to the Chat App</h1>
-  <nav>
-    <a href="{{ url_for('main.index') }}">Home</a> |
-    <a href="{{ url_for('chat.chat') }}">Chat</a> |
-    <a href="{{ url_for('auth.login') }}">Login</a> |
-    <a href="{{ url_for('auth.signup') }}">Signup</a> |
-    <a href="{{ url_for('auth.logout') }}">Logout</a>
-  </nav>
-
   {% block content %}{% endblock %}
   {% block js %}{% endblock %}
 </body>
