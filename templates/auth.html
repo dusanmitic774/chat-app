@@ -30,6 +30,16 @@
 
         <div class="card-body px-4 py-5 px-md-5">
 
+          <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }}">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+          </div>
+
           <!-- Login Form -->
           <form id="loginForm" action="{{ url_for('auth.login') }}" method="post">
             <div class="form-outline mb-4">
@@ -98,5 +108,52 @@
       loginForm.style.display = 'block';
     });
   });
+
+
+  // Check URL to show the signup form if needed
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('show') === 'signup') {
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'block';
+  }
+
+
+  function isPasswordStrong(password) {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long.";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter.";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter.";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least one number.";
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return "Password must contain at least one special character.";
+    }
+    return "";
+  }
+
+  document.getElementById('signupForm').addEventListener('submit', function(event) {
+    const passwordInput = document.getElementById('signupPassword');
+    const password = passwordInput.value;
+    const passwordError = isPasswordStrong(password);
+
+    if (passwordError) {
+      event.preventDefault();
+      displayPasswordError(passwordError);
+    }
+  });
+
+  function displayPasswordError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-danger';
+    errorDiv.textContent = message;
+    const form = document.getElementById('signupForm');
+    form.prepend(errorDiv);
+  }
 </script>
 {% endblock %}
