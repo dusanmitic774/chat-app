@@ -2,18 +2,19 @@ from datetime import timezone
 
 from flask import (
     Blueprint,
+    current_app,
     jsonify,
     redirect,
     render_template,
     request,
     url_for,
-    current_app,
 )
 from flask_login import current_user
 from flask_socketio import emit, join_room
-from sqlalchemy import case, and_, or_
+from sqlalchemy import and_, case, or_
 
 from app import socketio
+from app.crypto_utils import decrypt_message, encrypt_message
 from app.database import db
 from app.logs import app_logger
 from app.models import Friendship, Message, User
@@ -202,10 +203,11 @@ def handle_send_message_event(data):
             return False
 
         try:
+            encrypted_message = encrypt_message(data["message"])
             new_message = Message(
                 sender_id=data["sender_id"],
                 recipient_id=data["recipient_id"],
-                content=data["message"],
+                content=encrypted_message,
             )
             db.session.add(new_message)
             db.session.commit()
@@ -286,7 +288,7 @@ def get_messages():
             if msg.sender.profile_picture
             else "default_profile_pic.png",
             "recipient_id": msg.recipient_id,
-            "content": msg.content,
+            "content": decrypt_message(msg.content),
             "timestamp": msg.timestamp.replace(tzinfo=timezone.utc).isoformat(),
         }
         for msg in reversed(messages)
