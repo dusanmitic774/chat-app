@@ -250,6 +250,8 @@ document.getElementById('sendButton').addEventListener('click', function() {
 });
 
 const messageInput = document.getElementById('messageInput');
+let typingTimer;
+const typingInterval = 500;
 
 messageInput.addEventListener('keypress', function(e) {
   if (e.key === 'Enter') {
@@ -260,8 +262,13 @@ messageInput.addEventListener('keypress', function(e) {
 });
 
 messageInput.addEventListener('input', () => {
-  if (currentRecipientId) {
-    socket.emit('typing', { sender_id: currentUserId, recipient_id: currentRecipientId });
+  clearTimeout(typingTimer);
+  if (messageInput.value.trim()) {
+    typingTimer = setTimeout(() => {
+      if (currentRecipientId) {
+        socket.emit('typing', { sender_id: currentUserId, recipient_id: currentRecipientId });
+      }
+    }, typingInterval);
   }
 });
 
