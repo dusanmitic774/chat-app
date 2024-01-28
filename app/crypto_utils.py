@@ -1,6 +1,16 @@
-from cryptography.fernet import Fernet
+import os
 
-key = Fernet.generate_key()
+from cryptography.fernet import Fernet
+from dotenv import load_dotenv
+
+load_dotenv()
+
+key = os.getenv("ENCRYPTION_KEY")
+
+if key is None:
+    raise ValueError("No encryption key found in .env file")
+
+key = key.encode("utf-8")
 cipher_suite = Fernet(key)
 
 
