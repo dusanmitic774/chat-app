@@ -55,8 +55,9 @@ function fetchInitialMessages(recipientId, limit = 20) {
   fetch(`/get-messages?recipient_id=${recipientId}&offset=0&limit=${limit}`)
     .then(response => response.json())
     .then(data => {
+      let formattedMessages = [];
       if (data.messages.length > 0) {
-        const formattedMessages = data.messages.map(msg => ({
+        formattedMessages = data.messages.map(msg => ({
           userId: msg.sender_id.toString(),
           username: msg.sender_username,
           message: msg.content,
@@ -64,10 +65,10 @@ function fetchInitialMessages(recipientId, limit = 20) {
           timestamp: msg.timestamp,
           profilePicture: msg.sender_profile_picture
         }));
-
-        messageStore[recipientId] = formattedMessages;
-        displayMessages(recipientId);
       }
+
+      messageStore[recipientId] = formattedMessages;
+      displayMessages(recipientId);
     });
 }
 
