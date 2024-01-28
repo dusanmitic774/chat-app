@@ -41,16 +41,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Password validation
     const password = document.getElementById('password').value;
     const repeatPassword = document.getElementById('repeatPassword').value;
-    const passwordError = isPasswordStrong(password);
 
-    if (passwordError) {
-      alert(passwordError);
-      return;
-    }
+    if (password) {
+      const passwordError = isPasswordStrong(password);
 
-    if (password !== repeatPassword) {
-      alert("Passwords do not match.");
-      return;
+      if (passwordError) {
+        alert(passwordError);
+        return;
+      }
+
+      if (password !== repeatPassword) {
+        alert("Passwords do not match.");
+        return;
+      }
     }
 
     // Create FormData object
