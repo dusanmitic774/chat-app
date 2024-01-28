@@ -17,14 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-
 // Check URL to show the signup form if needed
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('show') === 'signup') {
   loginForm.style.display = 'none';
   signupForm.style.display = 'block';
 }
-
 
 function isPasswordStrong(password) {
   if (password.length < 8) {

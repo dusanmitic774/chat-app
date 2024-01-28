@@ -6,6 +6,7 @@ from flask_login import current_user, login_required
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
+from app.auth import is_password_strong
 from app.database import db
 from app.models import User
 
@@ -30,6 +31,9 @@ def update_profile():
         user.email = email
 
     if password:
+        is_strong, message = is_password_strong(password)
+        if not is_strong:
+            return jsonify({"error": message}), 400
         user.password_hash = generate_password_hash(password)
 
     if "profilePicture" in request.files:
