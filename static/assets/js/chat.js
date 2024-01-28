@@ -441,6 +441,15 @@ function appendMessage(
   scrollToBottom()
 }
 
+document.getElementById('messageInput').addEventListener('focus', function() {
+  if (currentRecipientId) {
+    fetch(`/reset-unread/${currentRecipientId}`).then(response => response.json()).then(data => {
+      if (data.success) {
+        updateUnreadCount(currentRecipientId, 0);
+      }
+    });
+  }
+});
 
 function formatTimestamp(isoString) {
   if (!isoString) return '';
