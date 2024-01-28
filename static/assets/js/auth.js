@@ -36,9 +36,12 @@ document.getElementById('signupForm').addEventListener('submit', function(event)
 });
 
 function displayPasswordError(message) {
-  const errorDiv = document.createElement('div');
-  errorDiv.className = 'alert alert-danger';
+  let errorDiv = document.querySelector('#signupForm .alert-danger');
+  if (!errorDiv) {
+    errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-danger';
+    const form = document.getElementById('signupForm');
+    form.prepend(errorDiv);
+  }
   errorDiv.textContent = message;
-  const form = document.getElementById('signupForm');
-  form.prepend(errorDiv);
 }
