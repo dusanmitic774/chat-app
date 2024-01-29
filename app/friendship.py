@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import or_
 
@@ -62,9 +62,11 @@ def send_friend_request():
             "requester_id": current_user.id,
             "requester_username": current_user.username,
             "friend_request_id": friend_request.id,
-            "requester_profile_picture": current_user.profile_picture
+            "requester_profile_picture": url_for(
+                "static", filename="uploads/" + current_user.profile_picture
+            )
             if current_user.profile_picture
-            else "default_profile_pic.png",
+            else url_for("static", filename="uploads/default_profile_pic.png"),
         },
         room=str(receiver.id),
         namespace="/chat",
@@ -156,6 +158,11 @@ def get_pending_requests():
             "requester_id": req.requester_id,
             "requester_username": req.requester.username,
             "friend_request_id": req.id,
+            "requester_profile_picture": url_for(
+                "static", filename="uploads/" + current_user.profile_picture
+            )
+            if current_user.profile_picture
+            else url_for("static", filename="uploads/default_profile_pic.png"),
         }
         for req in pending_requests
     ]

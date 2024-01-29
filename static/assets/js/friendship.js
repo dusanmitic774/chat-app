@@ -125,7 +125,7 @@ function displayNewRequest(data) {
   const newRequestHTML = `
     <a href="#" class="list-group-item list-group-item-action border-0 user">
       <div class="d-flex align-items-start justify-content-between">
-        <img src="/static/uploads/${data.requester_profile_picture}" class="rounded-circle mr-1" alt="${data.requester_username}" width="40" height="40">
+        <img src="${data.requester_profile_picture}" class="rounded-circle mr-1" alt="${data.requester_username}" width="40" height="40">
         <div class="flex-grow-1 ml-3">
           ${data.requester_username}
         </div>
