@@ -19,6 +19,15 @@ cd chat-app-flask
   ```
   FLASK_ENV=development
   DATABASE_URL=postgresql://postgres:password@db:5432/postgres
+  POSTGRES_USER=postgres
+  POSTGRES_PASSWORD=password
+  POSTGRES_DB=chat_app
+
+  SECRET_KEY=secretkey
+
+  FLASK_ENV=<development or production>
+
+  ENCRYPTION_KEY=
   ```
 
 3. **Build and Run with Docker Compose**:
