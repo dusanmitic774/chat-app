@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
       .then(response => {
         if (!response.ok) {
+          alert("File size too large. Please upload a smaller file.");
           throw new Error('Network response was not ok: ' + response.statusText);
         }
         return response.json();
@@ -80,8 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .catch(error => {
         console.error('Error:', error.message);
         if (error.message.includes('413')) {
-          console.log("File size too large. Please upload a smaller file.");
-          // Handle large file error here
+          alert("File size too large. Please upload a smaller file.");
         }
       });
   });
