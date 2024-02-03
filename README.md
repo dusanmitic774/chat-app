@@ -1,9 +1,12 @@
-# Chat App Flask
+# Milky Way
+This is **Milky Way**! A minimalistic chat app for friends who want to limit their social media usage.
 
-## Running the Project Locally
+You can visit Milky Way [here](http://milkyway.in.rs/chat).
+
+## :rocket: Running the Project Locally
 
 ### Prerequisites
-- Docker and Docker Compose installed on your system.
+- [Docker and Docker Compose](https://docs.docker.com/) installed on your system.
 - Python 3.10, if you want to run the app outside of Docker.
 
 ### Steps to Run Locally
@@ -38,7 +41,7 @@ docker compose up --build
 - This will start the necessary services (app, database) in containers.
 
 4. **Accessing the App**:
-- The app will be accessible at `http://localhost:8080`.
+- The app will be accessible at `http://localhost`.
 
 ### Running migrations
 - First you need to initialize the database with the following command:
@@ -52,10 +55,10 @@ docker exec -it chat-app flask db migrate
 docker exec -it chat-app flask db upgrade
 ```
 
-## Deploying with Ansible
+## :rocket: Deploying with Ansible
 
 ### Prerequisites
-- Ansible installed on your local machine.
+- [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) installed on your local machine.
 - Access to a server where you want to deploy the app.
 - SSH keys set up for the server.
 
