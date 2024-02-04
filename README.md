@@ -3,6 +3,8 @@ This is **Milky Way**! A minimalistic chat app for friends who want to limit the
 
 You can visit Milky Way [here](http://milkyway.in.rs/chat).
 
+https://github.com/dusanmitic774/chat-app/assets/66823341/dc376c52-608c-45f3-8ea0-58d49187b8c6
+
 ## :rocket: Running the Project Locally
 
 ### Prerequisites
