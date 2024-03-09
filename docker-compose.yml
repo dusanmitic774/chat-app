@@ -23,6 +23,7 @@ services:
       - ./logs:/var/log
     depends_on:
       - chat-app-db
+      - redis
   chat-app-db:
     container_name: postgres-chat-app
     image: postgres:13
