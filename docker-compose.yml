@@ -5,7 +5,7 @@ services:
     container_name: nginx-chat-app
     image: nginx:latest
     ports:
-      - "80:80"
+      - "8000:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./static:/usr/src/app/static
