@@ -2,57 +2,25 @@
   become: yes
 
   tasks:
-    - name: Check if the SSH key already exists
-      stat:
-        path: "/home/ansible_chat_app/.ssh/id_rsa"
-      register: ssh_key
-      become: yes
-      become_user: ansible_chat_app
-
-    - name: Set correct permissions for existing SSH private key
-      file:
-        path: "/home/ansible_chat_app/.ssh/id_rsa"
-        owner: ansible_chat_app
-        group: ansible_chat_app
-        mode: '0600'
-      when: ssh_key.stat.exists
-      become: yes
-      become_user: ansible_chat_app
-
-    - name: Set correct permissions for existing SSH public key
-      file:
-        path: "/home/ansible_chat_app/.ssh/id_rsa.pub"
-        owner: ansible_chat_app
-        group: ansible_chat_app
-        mode: '0644'
-      when: ssh_key.stat.exists
-      become: yes
-      become_user: ansible_chat_app
-
-    - name: Add GitHub to known hosts
-      known_hosts:
-        name: "github.com"
-        key: "{{ lookup('pipe', 'ssh-keyscan -t rsa github.com') }}"
-        path: "/home/ansible_chat_app/.ssh/known_hosts"
-      become: yes
-      become_user: ansible_chat_app
-
     - name: Check if Docker is installed
       command: docker --version
       register: docker_installed
       ignore_errors: yes
 
-    - name: Install Git, Docker, and Docker-compose
+    - name: Install Docker and dependencies if not installed
       apt:
-        name: "{{ packages }}"
-        state: present
-        update_cache: yes
-      vars:
-        packages:
-          - git
+        name:
           - docker.io
           - docker-compose
+        state: present
+        update_cache: yes
       when: docker_installed.rc != 0
+
+    - name: Add ansible_chat_app user to the Docker group
+      user:
+        name: ansible_chat_app
+        groups: docker
+        append: yes
 
     - name: Clone the repository using SSH
       git:
@@ -69,8 +37,6 @@
         owner: ansible_chat_app
         group: ansible_chat_app
         mode: '0755'
-      become: yes
-      become_user: ansible_chat_app
 
     - name: Ensure uploads directory exists
       file:
@@ -79,20 +45,31 @@
         owner: ansible_chat_app
         group: ansible_chat_app
         mode: '0755'
-      become: yes
-      become_user: ansible_chat_app
 
     - name: Build Docker containers
       command: docker compose build
       args:
         chdir: '/home/ansible_chat_app/chat-app-flask'
+      become: yes
 
     - name: Run Docker containers
       command: docker compose up -d
       args:
         chdir: '/home/ansible_chat_app/chat-app-flask'
+      become: yes
 
-    - name: Run database migrations
-      command: docker exec chat-app flask db upgrade
+    - name: Ensure containers are running
+      command: docker compose ps
       args:
         chdir: '/home/ansible_chat_app/chat-app-flask'
+      register: docker_ps
+      become: yes
+      until: docker_ps.stdout | regex_search('chat-app', multiline=True)
+      retries: 5
+      delay: 10
+
+    - name: Run database migrations
+      command: docker exec -it chat-app flask db upgrade
+      args:
+        chdir: '/home/ansible_chat_app/chat-app-flask'
+      become: yes
