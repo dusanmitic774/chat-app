@@ -1,10 +1,11 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100% !important;
   min-height: 100vh !important;
   margin: 0 !important;
@@ -12,7 +13,7 @@ html, body {
 }
 
 body {
-    overflow: hidden;
+  /* overflow: hidden; */
 }
 
 /* Chat */
@@ -24,201 +25,201 @@ body {
 }
 
 .chat-online {
-    color: #34ce57
+  color: #34ce57;
 }
 .chat-offline {
-    color: #e4606d
+  color: #e4606d;
 }
 .chat-messages {
-    display: flex;
-    flex-direction: column;
-    max-height: 500px;
-    min-height: 500px;
-    overflow-y: scroll;
-    scrollbar-width: thin;
-    scrollbar-color: #888 #f1f1f1;
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+  min-height: 500px;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
 }
 .chat-message-left,
 .chat-message-right {
-    display: flex;
-    flex-shrink: 0
+  display: flex;
+  flex-shrink: 0;
 }
 .chat-message-left {
-    margin-right: auto
+  margin-right: auto;
 }
 .chat-message-right {
-    flex-direction: row-reverse;
-    margin-left: auto
+  flex-direction: row-reverse;
+  margin-left: auto;
 }
 .sent-message {
   text-align: right;
 }
 .py-3 {
-    padding-top: 1rem!important;
-    padding-bottom: 1rem!important;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
 }
 .px-4 {
-    padding-right: 1.5rem!important;
-    padding-left: 1.5rem!important;
+  padding-right: 1.5rem !important;
+  padding-left: 1.5rem !important;
 }
 .flex-grow-0 {
-    flex-grow: 0!important;
+  flex-grow: 0 !important;
 }
 .border-top {
-    border-top: 1px solid #dee2e6!important;
+  border-top: 1px solid #dee2e6 !important;
 }
 
 /* Modal */
 .modal-dialog {
-    margin-top: 20vh;
+  margin-top: 20vh;
 }
 
 /* User Profile Container */
 .user-profile-container {
-    padding: 20px;
-    max-width: 800px; /* Adjust as needed for the width of the profile section */
-    margin: 0 auto; /* Center the container */
+  padding: 20px;
+  max-width: 800px; /* Adjust as needed for the width of the profile section */
+  margin: 0 auto; /* Center the container */
 }
 
 /* Profile Picture Styling */
 .profile-picture {
-    width: 150px;
-    height: 150px;
-    object-fit: cover;
-    margin: 0 auto; /* Center the image */
-    display: block;
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  margin: 0 auto; /* Center the image */
+  display: block;
 }
 
 /* User Profile Form */
 #userProfileForm {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 20px;
 }
 
 #userProfileForm .form-group {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 #userProfileForm .form-control {
-    flex: 1;
-    margin-right: 10px; /* Space between input and edit icon */
+  flex: 1;
+  margin-right: 10px; /* Space between input and edit icon */
 }
 
 #userProfileForm .btn-edit {
-    background: none;
-    color: #007bff; /* Bootstrap primary color */
-    cursor: pointer;
-    border-radius: 0.25rem;
+  background: none;
+  color: #007bff; /* Bootstrap primary color */
+  cursor: pointer;
+  border-radius: 0.25rem;
 }
 
 #userProfileForm button[type="submit"] {
-    width: 100%;
-    align-self: center;
+  width: 100%;
+  align-self: center;
 }
 
 /* Custom File Upload Styling */
 .custom-file-upload {
-    display: block;
-    margin-top: 15px;
+  display: block;
+  margin-top: 15px;
 }
 
 .custom-file-upload label {
-    display: block;
-    width: 30%;
+  display: block;
+  width: 30%;
 }
 
 .custom-file-upload input[type="file"] {
-    display: none;
+  display: none;
 }
 
 /* Scrollbar Styling */
 .user-profile-container::-webkit-scrollbar,
 .chat-messages::-webkit-scrollbar {
-    width: 10px;
+  width: 10px;
 }
 
 .user-profile-container::-webkit-scrollbar-track,
 .chat-messages::-webkit-scrollbar-track {
-    background: #f1f1f1;
+  background: #f1f1f1;
 }
 
 .user-profile-container::-webkit-scrollbar-thumb,
 .chat-messages::-webkit-scrollbar-thumb {
-    background: #888;
+  background: #888;
 }
 
 .user-profile-container::-webkit-scrollbar-thumb:hover,
 .chat-messages::-webkit-scrollbar-thumb:hover {
-    background: #555;
+  background: #555;
 }
 
 /* Adjusting for smaller screens */
 @media (max-width: 767px) {
-    .user-profile-container {
-        padding: 10px;
-    }
+  .user-profile-container {
+    padding: 10px;
+  }
 
-    .profile-picture {
-        width: 120px;
-        height: 120px;
-    }
+  .profile-picture {
+    width: 120px;
+    height: 120px;
+  }
 
-    #userProfileForm .form-group {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+  #userProfileForm .form-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-    #userProfileForm .form-control {
-        width: 100%;
-        margin-right: 0;
-        margin-bottom: 10px;
-    }
+  #userProfileForm .form-control {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
 
-    #userProfileForm .btn-edit {
-        align-self: flex-end;
-    }
+  #userProfileForm .btn-edit {
+    align-self: flex-end;
+  }
 }
 
 /* Notifications for friend requests */
 .icon-container {
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
 }
 
 .notification-count {
-    background-color: #E4606D !important;
-    position: absolute;
-    top: -15px;
-    right: -20px;
-    background-color: red;
-    color: white;
-    border-radius: 50%;
-    width: 20px; /* Equal width and height for a perfect circle */
-    height: 20px;
-    padding: 2px 5px;
-    font-size: 0.7rem;
-    display: none;
+  background-color: #e4606d !important;
+  position: absolute;
+  top: -15px;
+  right: -20px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  width: 20px; /* Equal width and height for a perfect circle */
+  height: 20px;
+  padding: 2px 5px;
+  font-size: 0.7rem;
+  display: none;
 }
 
 /* Messages notifications */
 .unread-count {
-    background-color: #E4606D;
-    color: white;
-    border-radius: 50%;
-    width: 20px; /* Equal width and height for a perfect circle */
-    height: 20px;
-    padding: 2px 5px;
-    font-size: 0.8rem;
-    position: absolute;
-    top: 30%;
-    right: 0;
-    display: flex;
-    justify-content: center; /* Center text horizontally */
-    align-items: center; /* Center text vertically */
+  background-color: #e4606d;
+  color: white;
+  border-radius: 50%;
+  width: 20px; /* Equal width and height for a perfect circle */
+  height: 20px;
+  padding: 2px 5px;
+  font-size: 0.8rem;
+  position: absolute;
+  top: 30%;
+  right: 0;
+  display: flex;
+  justify-content: center; /* Center text horizontally */
+  align-items: center; /* Center text vertically */
 }
 
 .sent-message-container {
@@ -247,18 +248,22 @@ body {
 .background-radial-gradient {
   min-height: 100vh;
   background-color: hsl(200, 41%, 15%);
-  background-image: radial-gradient(650px circle at 0% 0%,
+  background-image: radial-gradient(
+      650px circle at 0% 0%,
       hsl(200, 41%, 35%) 15%,
       hsl(200, 41%, 30%) 35%,
       hsl(200, 41%, 20%) 75%,
       hsl(200, 41%, 19%) 80%,
-      transparent 100%),
-    radial-gradient(1250px circle at 100% 100%,
+      transparent 100%
+    ),
+    radial-gradient(
+      1250px circle at 100% 100%,
       hsl(200, 41%, 45%) 15%,
       hsl(200, 41%, 30%) 35%,
       hsl(200, 41%, 20%) 75%,
       hsl(200, 41%, 19%) 80%,
-      transparent 100%);
+      transparent 100%
+    );
 }
 
 #radius-shape-1 {
@@ -296,10 +301,31 @@ body {
   padding: 20px;
 }
 
-.auth-text-section {
-    text-align: left;
-}
-
 .auth-form-section {
   min-width: 400px;
 }
+
+.auth-form {
+  margin-bottom: 2em !important;
+}
+
+@media (max-width: 768px) {
+  .auth-container,
+  .auth-form-section,
+  .auth-text-section {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  .form-control,
+  .btn-block {
+    width: 100%;
+  }
+  .form-outline {
+    margin-bottom: 20px;
+  }
+  .welcome-text {
+    text-align: center;
+    margin-top: 2em;
+  }
+}
+

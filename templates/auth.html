@@ -2,91 +2,141 @@
 {% block title %}Authentication{% endblock %}
 
 {% block content %}
-<section class="background-radial-gradient overflow-hidden">
-
-  <div class="container px-4 py-5 px-md-5 text-center text-lg-start my-5 auth-container">
-
-    <div class="row gx-lg-5 align-items-center mb-5">
-      <div class="col-lg-6 mb-5 mb-lg-0 auth-text-section" style="z-index: 10">
-        <h1 class="my-5 display-5 fw-bold ls-tight" style="color: hsl(218, 81%, 95%)">
+<section class="background-radial-gradient overflow-hidden auth-container">
+  <div class="container px-3 py-5 px-md-5 my-5">
+    <div class="row gx-5 align-items-center mb-5">
+      <!-- Welcome text -->
+      <div
+        class="col-12 col-lg-6 mb-3 mb-lg-0 welcome-text"
+        style="z-index: 10"
+      >
+        <h1
+          class="my-5 display-6 fw-bold ls-tight"
+          style="color: hsl(218, 81%, 95%)"
+        >
           Welcome To<br />
-          <!-- <span style="color: hsl(218, 81%, 75%)">for your business</span> -->
-          <!-- <span style="color: #5bc0de">for your business</span> -->
-          <span style="color: #54B4D3">Milky Way</span>
+          <span style="color: #54b4d3">Milky Way</span>
         </h1>
-        <!-- <p class="mb-4 opacity-70" style="color: hsl(218, 81%, 85%)"> -->
         <p class="mb-4 opacity-70" style="color: white">
-        <!-- <p class="mb-4 opacity-70" style="color: #54B4D3"> -->
-        We're committed to delivering seamless communication experiences, 
-        offering you a platform where connecting with friends and colleagues is effortless and enjoyable.
+          Annoyed at the overwhelm of options in the current social media?
+          Register to our minimalistic chat application today if you don't want
+          clutter.
         </p>
       </div>
 
-      <div class="card bg-glass auth-form-section">
-        <!-- <div id="radius-shape-1" class="position-absolute rounded-circle shadow-5-strong"></div> -->
-        <!-- <div id="radius-shape-2" class="position-absolute shadow-5-strong"></div> -->
+      <div class="col-12 col-lg-6 auth-form">
+        <div class="card bg-glass">
+          <div class="card-body px-4 py-5 px-md-4">
+            <div class="flash-messages">
+              {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %} {% for category, message in messages %}
+              <div
+                class="alert alert-{{ 'danger' if category == 'error' else 'success' }}"
+              >
+                {{ message }}
+              </div>
+              {% endfor %} {% endif %} {% endwith %}
+            </div>
 
-        <div class="card-body px-4 py-5 px-md-5">
+            <!-- Login Form -->
+            <form
+              id="loginForm"
+              action="{{ url_for('auth.login') }}"
+              method="post"
+            >
+              <div class="form-outline mb-4 text-center">
+                <input
+                  type="text"
+                  id="loginUser"
+                  name="login"
+                  class="form-control"
+                  required
+                />
+                <label class="form-label" for="loginUser"
+                  >Username or Email</label
+                >
+              </div>
 
-          <div class="flash-messages">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category, message in messages %}
-                  <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }}">{{ message }}</div>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
+              <div class="form-outline mb-4 text-center">
+                <input
+                  type="password"
+                  id="loginPassword"
+                  name="password"
+                  class="form-control"
+                  required
+                />
+                <label class="form-label" for="loginPassword">Password</label>
+              </div>
+
+              <button type="submit" class="btn btn-info btn-block mb-4">
+                Login
+              </button>
+
+              <p class="text-center">
+                Not a member? <a href="#" id="switchToSignup">Sign up</a>
+              </p>
+            </form>
+
+            <!-- Signup Form -->
+            <form
+              id="signupForm"
+              action="{{ url_for('auth.signup') }}"
+              method="post"
+              style="display: none"
+            >
+              <div class="form-outline mb-4 text-center">
+                <input
+                  type="text"
+                  id="signupUsername"
+                  name="username"
+                  class="form-control"
+                  required
+                />
+                <label class="form-label" for="signupUsername">Username</label>
+              </div>
+
+              <div class="form-outline mb-4 text-center">
+                <input
+                  type="email"
+                  id="signupEmail"
+                  name="email"
+                  class="form-control"
+                  required
+                />
+                <label class="form-label" for="signupEmail"
+                  >Email address</label
+                >
+              </div>
+
+              <div class="form-outline mb-4 text-center">
+                <input
+                  type="password"
+                  id="signupPassword"
+                  name="password"
+                  class="form-control"
+                  required
+                />
+                <label class="form-label" for="signupPassword">Password</label>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-info btn-block mb-4">
+                  Sign up
+                </button>
+              </div>
+
+              <p class="text-center">
+                Already a member? <a href="#" id="switchToLogin">Login</a>
+              </p>
+            </form>
+            <!-- Signup Form End -->
+            <!-- Forms remain unchanged -->
           </div>
-
-          <!-- Login Form -->
-          <form id="loginForm" action="{{ url_for('auth.login') }}" method="post">
-            <div class="form-outline mb-4">
-              <input type="text" id="loginUser" name="login" class="form-control" required />
-              <label class="form-label" for="loginUser">Username or Email</label>
-            </div>
-
-            <div class="form-outline mb-4">
-              <input type="password" id="loginPassword" name="password" class="form-control" required />
-              <label class="form-label" for="loginPassword">Password</label>
-            </div>
-
-            <button type="submit" class="btn btn-info btn-block mb-4">
-              Login
-            </button>
-
-            <p>Not a member? <a href="#" id="switchToSignup">Sign up</a></p>
-          </form>
-
-          <!-- Signup Form -->
-          <form id="signupForm" action="{{ url_for('auth.signup') }}" method="post" style="display: none;">
-            <div class="form-outline mb-4">
-              <input type="text" id="signupUsername" name="username" class="form-control" required />
-              <label class="form-label" for="signupUsername">Username</label>
-            </div>
-
-            <div class="form-outline mb-4">
-              <input type="email" id="signupEmail" name="email" class="form-control" required />
-              <label class="form-label" for="signupEmail">Email address</label>
-            </div>
-
-            <div class="form-outline mb-4">
-              <input type="password" id="signupPassword" name="password" class="form-control" required />
-              <label class="form-label" for="signupPassword">Password</label>
-            </div>
-
-            <button type="submit" class="btn btn-info btn-block mb-4">
-              Sign up
-            </button>
-
-            <p>Already a member? <a href="#" id="switchToLogin">Login</a></p>
-          </form>
-
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<script src="{{ url_for('static' ,filename='assets/js/shared.js') }}"></script>
-<script src="{{ url_for('static' ,filename='assets/js/auth.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/shared.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/auth.js') }}"></script>
 {% endblock %}
