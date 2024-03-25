@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   nginx:
     container_name: nginx-chat-app
-    image: nginx:latest
+    image: nginx:1.25.4
     ports:
       - "8000:80"
     volumes:
@@ -35,7 +33,7 @@ services:
       - "5432:5432"
   redis:
     container_name: redis-chat-app
-    image: redis:latest
+    image: redis:7.2.4
     ports:
       - "6379:6379"
     volumes:
